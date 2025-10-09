@@ -1,17 +1,18 @@
 use sqlx::postgres::PgPoolOptions;
 use crate::get_env::get_env;
 
-pub async fn connect_db() -> Result<sqlx::PgPool, sqlx::Error> {
-    // 환경변수 생성
+pub struct PgPoolWrapper {
+    pub pool: sqlx::PgPool,
+}
+
+pub async fn connect_db() -> sqlx::PgPool {
+    // 환경 변수에서 DB URL 읽기
     let db_url = get_env("DATABASE_URL");
 
-    // 연결 풀 생성
-    let pool = PgPoolOptions::new().connect(&db_url).await.map_err(|e| {
-        tracing::error!("Failed to connect to the database: {}", e);
-        e
-    })?;
-
-    eprintln!("DB 연결 성공!");
-
-    Ok(pool)
+    // 풀 생성
+    PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&db_url)
+        .await
+        .expect("데이터베이스 연결에 실패했습니다. DATABASE_URL 또는 네트워크 설정을 확인하세요.")
 }

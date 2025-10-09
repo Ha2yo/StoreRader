@@ -1,7 +1,7 @@
-use crate::db::connect::connect_db;
+use crate::db::connect::PgPoolWrapper;
+use tauri::State;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::postgres::PgPool;
 use sqlx::FromRow;
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
@@ -15,15 +15,15 @@ struct User {
 }
 
 #[tauri::command]
-pub async fn print_all_users() {
-    // DB 연결 (값 타입 PgPool 반환)
-    let pool: PgPool = connect_db().await.unwrap();
+pub async fn print_all_users(state: State<'_, PgPoolWrapper>) -> Result<(), String> {
+    // 전역 상태로 등록된 DB 풀 가져오기
+    let pool = &state.pool;
 
-    // users 테이블 조회
+    // users 테이블 전체 조회
     let recs: Vec<User> = sqlx::query_as::<_, User>("SELECT * FROM users")
-        .fetch_all(&pool)
+        .fetch_all(pool)
         .await
-        .unwrap();
+        .map_err(|e| format!("users 조회 실패: {}", e))?;
 
     // 터미널 출력
     println!("==== 전체 유저 목록 ====");
@@ -33,4 +33,6 @@ pub async fn print_all_users() {
             user.id, user.email, user.name, user.google_id
         );
     }
+
+    Ok(())
 }

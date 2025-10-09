@@ -1,13 +1,22 @@
 pub mod db;
 pub mod get_env;
+
+use db::connect::{connect_db, PgPoolWrapper};
 use db::users::print_all_users;
 use get_env::{init_env, get_env};
+
+use sqlx::PgPool;
+use tokio::runtime::Runtime;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     init_env();
+    let  pool:PgPool = Runtime::new()
+        .unwrap()
+        .block_on(connect_db());
 
     tauri::Builder::default()
+        . manage(PgPoolWrapper{pool})
         // 플러그인 등록
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_google_auth::init())

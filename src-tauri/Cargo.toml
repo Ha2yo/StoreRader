@@ -40,3 +40,9 @@ tracing = "0.1.41"
 
 # 날짜 및 시간 관리 라이브러리
 chrono = { version = "0.4", features = ["serde"] }
+
+# 비동기 런타임
+tokio = { version = "1.47.1", features = ["full"] }
+
+# jsonwebtoken
+jsonwebtoken = "9"
