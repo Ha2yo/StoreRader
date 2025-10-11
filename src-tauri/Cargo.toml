@@ -44,5 +44,7 @@ chrono = { version = "0.4", features = ["serde"] }
 # 비동기 런타임
 tokio = { version = "1.47.1", features = ["full"] }
 
-# jsonwebtoken
-jsonwebtoken = "9"
+jsonwebtoken = { version = "9.3.1" }
+
+reqwest = { version = "0.12.23", default-features = false, features = ["json", "rustls-tls"] }
+base64 = "0.22.1"

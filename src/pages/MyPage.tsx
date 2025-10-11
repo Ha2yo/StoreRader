@@ -30,9 +30,20 @@ function MyPage() {
       console.log('[OAuth] Access Token:', response.accessToken);
       console.log('[OAuth] Refresh Token:', response.refreshToken);
       console.log('[OAuth] Expires at:', new Date((response as any).expiresAt));
+
+      const verifyResult = await invoke("verify_google_id_token", {
+        idToken: response.idToken,
+        clientId: googleClientId,
+      });
+
+      console.log("[백엔드 검증 성공]:", verifyResult);
+      alert("로그인 검증 성공!\n" + JSON.stringify(verifyResult, null, 2));
+
     } catch (err) {
       console.error('[OAuth] 로그인 실패:', err);
     }
+
+
   }
 
   function db_test() {
