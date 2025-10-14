@@ -16,6 +16,12 @@ pub struct User {
     pub last_login: NaiveDateTime,
 }
 
+#[derive(Serialize)]
+pub struct SimpleUser {
+    pub name: String,
+    pub email: String,
+}
+
 pub async fn find_and_create_user(
     state: State<'_, PgPoolWrapper>,
     sub: &str,
