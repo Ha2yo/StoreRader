@@ -1,5 +1,5 @@
 pub mod db;
-pub mod load_env;
+pub mod env;
 pub mod auth;
 pub mod commands;
 
@@ -7,7 +7,7 @@ use commands::env::c_get_env_value;
 use commands::auth::c_login_user;
 use db::connect::{connect_db, PgPoolWrapper};
 use db::warmup::warmup_db;
-use load_env::init_env;
+use env::init_env;
 
 use sqlx::PgPool;
 use tokio::runtime::Runtime;

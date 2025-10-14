@@ -38,12 +38,13 @@ dotenvy = "0.15.7"
 # 에러 핸들링
 tracing = "0.1.41"
 
-# 날짜 및 시간 관리 라이브러리
+# 날짜 및 시간 관리
 chrono = { version = "0.4", features = ["serde"] }
 
 # 비동기 런타임
 tokio = { version = "1.47.1", features = ["full"] }
 
+# JWT
 jsonwebtoken = { version = "9.3.1" }
 
 reqwest = { version = "0.12.23", default-features = false, features = ["json", "rustls-tls"] }

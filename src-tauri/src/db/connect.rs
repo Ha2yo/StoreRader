@@ -1,6 +1,6 @@
 use sqlx::postgres::PgPoolOptions;
 
-use crate::load_env::get_env_value;
+use crate::env::get_env_value;
 
 pub struct PgPoolWrapper {
     pub pool: sqlx::PgPool,
