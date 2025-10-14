@@ -1,5 +1,6 @@
 use sqlx::postgres::PgPoolOptions;
-use crate::get_env::get_env;
+
+use crate::load_env::get_env_value;
 
 pub struct PgPoolWrapper {
     pub pool: sqlx::PgPool,
@@ -7,7 +8,7 @@ pub struct PgPoolWrapper {
 
 pub async fn connect_db() -> sqlx::PgPool {
     // 환경 변수에서 DB URL 읽기
-    let db_url = get_env("DATABASE_URL");
+    let db_url = get_env_value("DATABASE_URL");
 
     // 풀 생성
     PgPoolOptions::new()

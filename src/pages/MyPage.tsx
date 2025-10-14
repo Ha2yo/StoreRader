@@ -9,9 +9,9 @@ function MyPage() {
     console.log("[OAuth] 로그인 버튼 클릭");
 
     const googleClientId = await invoke<string>(
-      "get_env", { name: "GOOGLE_CLIENT_ID" });
+      "c_get_env_value", { name: "GOOGLE_CLIENT_ID" });
     const googleClientPWD = await invoke<string>(
-      "get_env", { name: "GOOGLE_CLIENT_PWD" });
+      "c_get_env_value", { name: "GOOGLE_CLIENT_PWD" });
 
     try {
       console.log("[OAuth] Client Id가 설정되었습니다: ", googleClientId);
@@ -31,12 +31,12 @@ function MyPage() {
       console.log('[OAuth] Refresh Token:', response.refreshToken);
       console.log('[OAuth] Expires at:', new Date((response as any).expiresAt));
 
-      const verifyResult = await invoke("verify_google_id_token", {
+      const verifyResult = await invoke("c_login_user", {
         idToken: response.idToken,
         clientId: googleClientId,
       });
 
-      console.log("[백엔드 검증 성공]:", verifyResult);
+      console.log("[백엔드 검증 성공]:" + JSON.stringify(verifyResult, null, 2));
       alert("로그인 검증 성공!\n" + JSON.stringify(verifyResult, null, 2));
 
     } catch (err) {
@@ -45,18 +45,12 @@ function MyPage() {
 
 
   }
-
-  function db_test() {
-    invoke('print_all_users');
-  }
   return (
     <div className='container'>
       <h1>My page</h1>
       <br />
       <div>
         <button onClick={login}>로그인</button>
-        <br /><br />
-        <button onClick={db_test}>db test</button>
       </div>
     </div>
   );

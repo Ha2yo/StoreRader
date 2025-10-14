@@ -1,38 +1,66 @@
-use crate::db::connect::PgPoolWrapper;
-use tauri::State;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
+use tauri::State;
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
-struct User {
+use crate::db::connect::PgPoolWrapper;
+
+#[derive(Serialize, Deserialize, FromRow)]
+pub struct User {
     id: i32,
-    google_id: String,
+    sub: String,
     email: String,
     name: String,
-    created_at: NaiveDateTime, // DateTime<Utc> -> NaiveDateTime
-    last_login: NaiveDateTime, // DateTime<Utc> -> NaiveDateTime
+    created_at: NaiveDateTime,
+    last_login: NaiveDateTime,
 }
 
-#[tauri::command]
-pub async fn print_all_users(state: State<'_, PgPoolWrapper>) -> Result<(), String> {
-    // 전역 상태로 등록된 DB 풀 가져오기
+use sqlx::Error;
+
+pub async fn find_and_create_user(
+    state: State<'_, PgPoolWrapper>,
+    sub: &str,
+    email: &str,
+    name: &str,
+) -> Result<User, String> {
     let pool = &state.pool;
 
-    // users 테이블 전체 조회
-    let recs: Vec<User> = sqlx::query_as::<_, User>("SELECT * FROM users")
-        .fetch_all(pool)
+    // 기존 유저 조회
+    match sqlx::query_as::<_, User>("SELECT * FROM users WHERE sub = $1")
+        .bind(sub)
+        .fetch_one(pool)
         .await
-        .map_err(|e| format!("users 조회 실패: {}", e))?;
+    {
+        Ok(mut user) => {
+            // 로그인 시간 업데이트
+            sqlx::query("UPDATE users SET last_login = NOW() WHERE sub = $1")
+                .bind(sub)
+                .execute(pool)
+                .await
+                .map_err(|e| format!("last_login 업데이트 실패: {}", e))?;
 
-    // 터미널 출력
-    println!("==== 전체 유저 목록 ====");
-    for user in recs {
-        println!(
-            "id: {}, email: {}, name: {}, google_id: {}",
-            user.id, user.email, user.name, user.google_id
-        );
+            user.last_login = chrono::Utc::now().naive_utc();
+            return Ok(user);
+        }
+        Err(Error::RowNotFound) => {
+            // 계속 진행: 신규 생성
+        }
+        Err(e) => {
+            return Err(format!("DB 조회 실패: {}", e));
+        }
     }
 
-    Ok(())
+    // 신규 유저 생성
+    let new_user = sqlx::query_as::<_, User>(
+        "INSERT INTO users (sub, email, name) VALUES ($1, $2, $3)
+         RETURNING id, sub, email, name, created_at, last_login",
+    )
+    .bind(sub)
+    .bind(email)
+    .bind(name)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| format!("신규 유저 생성 실패: {}", e))?;
+
+    Ok(new_user)
 }
