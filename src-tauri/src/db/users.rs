@@ -1,6 +1,6 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{FromRow, PgPool};
 use tauri::State;
 use sqlx::Error;
 
@@ -23,12 +23,11 @@ pub struct SimpleUser {
 }
 
 pub async fn find_and_create_user(
-    state: State<'_, PgPoolWrapper>,
+    pool: &PgPool,
     sub: &str,
     email: &str,
     name: &str,
 ) -> Result<User, String> {
-    let pool = &state.pool;
 
     // 기존 유저 조회
     match sqlx::query_as::<_, User>("SELECT * FROM users WHERE sub = $1")

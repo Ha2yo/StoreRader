@@ -1,54 +1,47 @@
-use axum::{
-    response::IntoResponse,
-    routing::get,
-    Json, Router,
-};
-use serde::Serialize;
-use std::net::SocketAddr;
-use tower_http::cors::{Any, CorsLayer};
+use axum::{ http::{self, HeaderValue}, routing::{get, post}, Router };
+use reqwest::Method;
+use tower_http::cors::CorsLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
-use axum::http::Method;
 
-#[derive(Serialize, Clone)]
-struct UserDto {
-    id: i32,
-    name: &'static str,
-    email: &'static str,
-}
+use storerader_lib::{db::{connect_db, warmup::warmup_db}, env::init_env, routes::auth::login_with_google};
 
 #[tokio::main]
 async fn main() {
-    // 로그
+    init_env();
+    // 로그 세팅
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
-            std::env::var("RUST_LOG")
-                .unwrap_or_else(|_| "server=debug,axum=info".into()),
+            std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
         ))
         .with(tracing_subscriber::fmt::layer())
         .init();
 
+    // DB 풀 생성
+    let pool = connect_db().await;
+    warmup_db(&pool).await;
+
+    // CORS
     let cors = CorsLayer::new()
-        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE, Method::OPTIONS])
-        .allow_origin(Any)
-        .allow_headers(Any);
+        .allow_origin(HeaderValue::from_static("http://tauri.localhost"))
+        .allow_methods([
+            Method::GET,
+            Method::POST,
+            Method::OPTIONS,
+        ])
+        .allow_headers([
+            http::header::CONTENT_TYPE,
+            http::header::AUTHORIZATION,
+        ]);
 
+    // 라우터
     let app = Router::new()
-        .route("/ping", get(|| async { "pong" }))   // 유일한 테스트용
-        .route("/users", get(list_users))           // 유저 예제 (이후 DB로 연결)
-        .layer(cors);
-
-    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
-    tracing::info!("StoreRader API started on http://{}", addr);
-
-    axum::serve(tokio::net::TcpListener::bind(addr).await.unwrap(), app)
-        .await
-        .unwrap();
-}
-
-async fn list_users() -> impl IntoResponse {
-    let users = vec![
-        UserDto { id: 1, name: "Alice", email: "alice@example.com" },
-        UserDto { id: 2, name: "Bob", email: "bob@example.com"   },
-    ];
-    Json(users)
+        .route("/", get(|| async move { "route" }))
+        .route("/auth/verify", post(login_with_google))
+        .layer(cors)
+        .with_state(pool.clone());
+        
+    tracing::info!("StoreRader API started on http://localhost:3000");
+    
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }

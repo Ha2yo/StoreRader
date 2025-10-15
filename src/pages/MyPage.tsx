@@ -17,7 +17,6 @@ function MyPage() {
       console.log("[OAuth] Client Id가 설정되었습니다: ", googleClientId);
       console.log("[OAuth] Client PWD가 설정되었습니다: ", googleClientPWD);
 
-
       const response = await signIn({
         clientId: googleClientId,
         clientSecret: googleClientPWD,
@@ -31,13 +30,29 @@ function MyPage() {
       console.log('[OAuth] Refresh Token:', response.refreshToken);
       console.log('[OAuth] Expires at:', new Date((response as any).expiresAt));
 
-      const verifyResult = await invoke("c_login_user", {
-        idToken: response.idToken,
-        clientId: googleClientId,
-      });
+      // const verifyResult = await invoke("c_login_user", {
+      //    idToken: response.idToken,
+      //    clientId: googleClientId,
+      //  });
 
-      console.log("[백엔드 검증 성공]:" + JSON.stringify(verifyResult, null, 2));
-      alert("로그인 검증 성공!\n" + JSON.stringify(verifyResult, null, 2));
+      const apiURL = await invoke<string>(
+        "c_get_env_value", { name: "API_URL" });
+
+      const res = await fetch(`${apiURL}/auth/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id_token: response.idToken,
+          client_id: googleClientId,
+        }),
+      });
+      const data = await res.json();
+      console.log("[서버 응답]", data);
+
+      console.log("[백엔드 검증 성공]:" + JSON.stringify(data, null, 2));
+      alert("로그인 검증 성공!\n" + JSON.stringify(data, null, 2));
 
     } catch (err) {
       console.error('[OAuth] 로그인 실패:', err);
