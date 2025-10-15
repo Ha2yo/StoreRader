@@ -1,10 +1,7 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
-use tauri::State;
 use sqlx::Error;
-
-use crate::db::connect::PgPoolWrapper;
 
 #[derive(Serialize, Deserialize, FromRow)]
 pub struct User {

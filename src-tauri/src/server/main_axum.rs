@@ -1,6 +1,6 @@
-use axum::{ http::{self, HeaderValue}, routing::{get, post}, Router };
+use axum::{ routing::{get, post}, Router };
 use reqwest::Method;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use storerader_lib::{db::{connect_db, warmup::warmup_db}, env::init_env, routes::auth::login_with_google};
@@ -22,16 +22,13 @@ async fn main() {
 
     // CORS
     let cors = CorsLayer::new()
-        .allow_origin(HeaderValue::from_static("http://tauri.localhost"))
+        .allow_origin(Any)
         .allow_methods([
             Method::GET,
             Method::POST,
             Method::OPTIONS,
         ])
-        .allow_headers([
-            http::header::CONTENT_TYPE,
-            http::header::AUTHORIZATION,
-        ]);
+        .allow_headers(Any);
 
     // 라우터
     let app = Router::new()

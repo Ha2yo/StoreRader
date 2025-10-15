@@ -5,7 +5,6 @@ use sqlx::PgPool;
 
 use crate::auth::jwt::create_jwt;
 use crate::auth::verify::verify_google_id_token;
-use crate::db::connect::PgPoolWrapper;
 use crate::db::users::find_and_create_user;
 
 #[derive(Deserialize)]

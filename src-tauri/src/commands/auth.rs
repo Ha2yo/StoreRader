@@ -1,24 +1,24 @@
-use serde::Serialize;
-use tauri::State;
+// use serde::Serialize;
+// use tauri::State;
 
-use crate::auth::verify::{verify_google_id_token, GoogleClaims};
-use crate::auth::jwt::create_jwt;
-use crate::db::connect::PgPoolWrapper;
-use crate::db::users::find_and_create_user;
+// use crate::auth::verify::{verify_google_id_token, GoogleClaims};
+// use crate::auth::jwt::create_jwt;
+// use crate::db::connect::PgPoolWrapper;
+// use crate::db::users::find_and_create_user;
 
-#[derive(Serialize)]
-pub struct LoginResponse {
-    jwt: String,
-    user: UserPayload,
-}
+// #[derive(Serialize)]
+// pub struct LoginResponse {
+//     jwt: String,
+//     user: UserPayload,
+// }
 
-#[derive(Serialize)]
-pub struct UserPayload {
-    id: i32,
-    sub: String,
-    email: String,
-    name: String,
-}
+// #[derive(Serialize)]
+// pub struct UserPayload {
+//     id: i32,
+//     sub: String,
+//     email: String,
+//     name: String,
+// }
 
 // #[tauri::command]
 // pub async fn c_login_user(

@@ -16,8 +16,10 @@ function MyPage() {
         clientSecret: googleClientPWD,
         scopes: ['openid', 'email', 'profile'],
       });
+      alert("[OAuth] 로그인 성공!\n" + JSON.stringify(response, null, 2));
 
       const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
+      alert("API URL: " + apiURL);
       const res = await fetch(`${apiURL}/auth/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -27,31 +29,36 @@ function MyPage() {
         }),
       });
 
+      alert("Fetch 응답 상태: " + res.status);
+
       const data = await res.json();
+      alert("서버에서 받은 데이터: " + JSON.stringify(data, null, 2));
       if (data.jwt) {
         // AuthContext를 통해 전역 로그인 처리
         login(data.user.email, data.jwt);
         console.log("서버 응답 데이터:", JSON.stringify(data, null, 2));
       }
     } catch (err) {
+      alert("[OAuth] 로그인 실패: " + JSON.stringify(err, null, 2));
+
       console.error("로그인 실패:", err);
     }
   }
 
   // 로그아웃 핸들러
- async function handleLogout() {
+  async function handleLogout() {
     const accessToken = localStorage.getItem("accessToken") || undefined;
-  try {
-    // With token revocation (recommended)
-    await signOut({ accessToken });
-    // Or local sign-out only
-    // await signOut();
-    console.log('Successfully signed out');
-  } catch (error) {
-    console.error('Sign out failed:', error);
-  }
+    try {
+      // With token revocation (recommended)
+      await signOut({ accessToken });
+      // Or local sign-out only
+      // await signOut();
+      console.log('Successfully signed out');
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
 
-  logout();
+    logout();
     alert("로그아웃되었습니다");
   }
 
