@@ -3,6 +3,7 @@ use axum::extract::State;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
+use crate::auth::jwt::create_jwt;
 use crate::auth::verify::verify_google_id_token;
 use crate::db::connect::PgPoolWrapper;
 use crate::db::users::find_and_create_user;
@@ -14,10 +15,16 @@ pub struct GoogleLoginReq {
 }
 
 #[derive(Serialize)]
-pub struct GoogleLoginRes {
+pub struct User  {
     pub id: i32,
     pub name: String,
     pub email: String,
+}
+
+#[derive(Serialize)]
+pub struct GoogleLoginRes {
+    pub jwt: String,
+    pub user: User,
 }
 
 pub async fn login_with_google(
@@ -25,10 +32,12 @@ pub async fn login_with_google(
     Json(req): Json<GoogleLoginReq>,
 ) -> Result<Json<GoogleLoginRes>, String> {
 
+    // Google 검증
     let claims = verify_google_id_token(req.id_token, req.client_id)
         .await
         .map_err(|e| format!("Google 검증 실패: {}", e))?;
 
+    // DB 조회/생성
     let user = find_and_create_user(
         &pool,
         &claims.sub,
@@ -36,9 +45,19 @@ pub async fn login_with_google(
         &claims.name,
     ).await?;
 
+    // JWT 발급
+    let jwt = create_jwt(
+        user.id.to_string(),
+        user.email.clone()
+    ).map_err(|e| format!("JWT 생성 실패: {e}"))?;
+
+    // 응답 반환
     Ok(Json(GoogleLoginRes {
-        id: user.id,
-        name: user.name,
-        email: user.email,
+        jwt,
+        user: User {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+        }
     }))
 }

@@ -68,3 +68,13 @@ pub async fn find_and_create_user(
 
     Ok(new_user)
 }
+
+pub async fn get_user_by_sub(pool: &PgPool, sub: &str) -> Result<User, String> {
+    let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE sub = $1")
+        .bind(sub)
+        .fetch_one(pool)
+        .await
+        .map_err(|e| format!("DB 조회 실패: {}", e))?;
+
+    Ok(user)
+}

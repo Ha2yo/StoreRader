@@ -37,10 +37,11 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async move { "route" }))
         .route("/auth/verify", post(login_with_google))
+        .route("/me", get("me"))
         .layer(cors)
         .with_state(pool.clone());
         
-    tracing::info!("StoreRader API started on http://localhost:3000");
+    tracing::info!("StoreRader server started on http://localhost:3000");
     
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
