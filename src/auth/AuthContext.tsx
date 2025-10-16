@@ -15,7 +15,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
 
-  // ✅ 앱 새로 열 때 JWT 자동 복구
+  // 앱 새로 열 때 JWT 자동 복구
   useEffect(() => {
     const token = localStorage.getItem("jwt");
     const email = localStorage.getItem("email");
@@ -24,14 +24,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // ✅ 로그인 (email과 jwt 저장)
+  // 로그인 (email과 jwt 저장)
   function login(email: string, jwt: string) {
     localStorage.setItem("jwt", jwt);
     localStorage.setItem("email", email);
     setUser({ email });
   }
 
-  // 🚪 로그아웃 (JWT 제거)
+  // 로그아웃 (JWT 제거)
   function logout() {
     localStorage.removeItem("jwt");
     localStorage.removeItem("email");
