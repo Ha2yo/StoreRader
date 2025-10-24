@@ -1,23 +1,7 @@
-use chrono::NaiveDateTime;
-use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool};
+use sqlx::PgPool;
 use sqlx::Error;
 
-#[derive(Serialize, Deserialize, FromRow)]
-pub struct User {
-    pub id: i32,
-    pub sub: String,
-    pub email: String,
-    pub name: String,
-    pub created_at: NaiveDateTime,
-    pub last_login: NaiveDateTime,
-}
-
-#[derive(Serialize)]
-pub struct SimpleUser {
-    pub name: String,
-    pub email: String,
-}
+use crate::entity::user::User;
 
 pub async fn find_and_create_user(
     pool: &PgPool,

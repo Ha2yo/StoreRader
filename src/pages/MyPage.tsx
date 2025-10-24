@@ -3,9 +3,9 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuth } from '../auth/AuthContext';
 
 function MyPage() {
-  const { user, login, logout } = useAuth(); // ✅ 전역 Auth 사용
+  const { user, login, logout } = useAuth(); // 전역 Auth 사용
 
-  // ✅ 구글 로그인 함수
+  // 구글 로그인 함수
   async function handleLogin() {
     const googleClientId = await invoke<string>("c_get_env_value", { name: "GOOGLE_CLIENT_ID" });
     const googleClientPWD = await invoke<string>("c_get_env_value", { name: "GOOGLE_CLIENT_PWD" });
@@ -20,7 +20,7 @@ function MyPage() {
 
       const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
       alert("API URL: " + apiURL);
-      const res = await fetch(`${apiURL}/auth/verify`, {
+      const res = await fetch(`${apiURL}/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -62,11 +62,22 @@ function MyPage() {
     alert("로그아웃되었습니다");
   }
 
+  async function test() {
+    const apiURL = "http://61.79.139.65:3000"; // 서버 주소
+    const res = await fetch(`${apiURL}/ping`, {
+      method: "GET", // ping은 GET 엔드포인트니까
+    });
+
+    const data = await res.json();
+    console.log(data); // { message: "pong", success: true }
+    alert("서버 연결 성공!"); // ✅ 완료버튼 대신 alert
+  }
+
   return (
     <div className='container'>
       <h1>My Page</h1>
       <br />
-
+      <button onClick={test}>test</button>
       {!user ? (
         <button onClick={handleLogin}>로그인</button>
       ) : (

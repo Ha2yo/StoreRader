@@ -1,13 +1,11 @@
-pub mod db;
-pub mod env;
-pub mod auth;
+pub mod config;
 pub mod commands;
-pub mod routes;
+pub mod auth;
+pub mod entity;
+pub mod repository;
 
 use commands::env::c_get_env_value;
-
-// use commands::auth::c_login_user;
-use env::init_env;
+use config::env::init_env;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -20,7 +18,6 @@ pub fn run() {
         // command 등록
         .invoke_handler(tauri::generate_handler![
             c_get_env_value,
-            // c_login_user])
         ])
         // 실행
         .run(tauri::generate_context!())
