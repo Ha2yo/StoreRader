@@ -15,8 +15,9 @@
 ***********************************************************/
 
 import App from './App';
-import Home from './pages/Home.tsx';
+import Home from './pages/Home';
 import MyPage from './pages/MyPage.tsx';
+import MapPage from './pages/MapPage';
 import Navigation from './Navigation';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
@@ -30,6 +31,7 @@ function Routing() {
                     <Routes>
                         <Route path='/' element={<App />} />
                         <Route path='/home' element={<Home />} />
+                        <Route path='/map' element={<MapPage />} />
                         <Route path='/mypage' element={<MyPage />} />
                     </Routes>
                 </BrowserRouter>

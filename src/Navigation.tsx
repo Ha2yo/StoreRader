@@ -18,6 +18,7 @@ function Navigation() {
     <Navbar fixed="bottom" bg="primary" data-bs-theme="dark" className="safe-area-navbar">
       <Nav className="w-100 justify-content-around">
         <Nav.Link as={Link} to="/home">Home</Nav.Link>
+        <Nav.Link as={Link} to="/map">Map</Nav.Link>
         <Nav.Link as={Link} to="/mypage">page</Nav.Link>
       </Nav>
     </Navbar>
