@@ -33,7 +33,7 @@ use reqwest::Method;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use storerader_lib::auth::handler::auth_google_handler;
+use storerader_lib::{auth::handler::auth_google_handler, repository::goods::fetch_and_save_goods};
 use storerader_lib::config::{database::connect_db, env::init_env};
 
 #[tokio::main]
@@ -49,6 +49,8 @@ async fn main() {
 
     // 데이터베이스 풀 생성
     let pool = connect_db().await;
+
+    fetch_and_save_goods(&pool).await.unwrap();
 
     // CORS 설정
     let cors = CorsLayer::new()

@@ -217,7 +217,7 @@ pub fn decode_jwt(token: &str) -> Result<JwtClaims, String> {
     // .env 파일에서 JWT 서명용 비밀키 로드
     let secret = get_env_value("JWT_SECRET");
     if secret.is_empty() {
-        return Err("JWT_SECRET이 설정되지 않았습니다".into());
+        return Err("JWT_SUECRET이 설정되지 않았습니다".into());
     }
 
     // HS256 알고리즘으로 JWT 복호화 및 검증 수행
