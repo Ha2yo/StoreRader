@@ -13,7 +13,7 @@
 
 use sqlx::{PgPool, Error};
 
-use crate::entity::user::User;
+use crate::entity::user_entity::UserEntity;
 
 // find_and_create_user()
 // 기능: sub로 사용자 조회 후 없으면 생성 (있으면 last_login 갱신)
@@ -24,10 +24,10 @@ pub async fn find_and_create_user(
     sub: &str,
     email: &str,
     name: &str,
-) -> Result<User, String> {
+) -> Result<UserEntity, String> {
 
     // 기존 유저 조회
-    match sqlx::query_as::<_, User>("SELECT * FROM users WHERE sub = $1")
+    match sqlx::query_as::<_, UserEntity>("SELECT * FROM users WHERE sub = $1")
         .bind(sub)
         .fetch_one(pool)
         .await
@@ -51,7 +51,7 @@ pub async fn find_and_create_user(
     }
 
     // 신규 유저 생성
-    let new_user = sqlx::query_as::<_, User>(
+    let new_user = sqlx::query_as::<_, UserEntity>(
         "INSERT INTO users (sub, email, name) VALUES ($1, $2, $3)
          RETURNING id, sub, email, name, created_at, last_login",
     )
@@ -74,8 +74,8 @@ pub async fn find_and_create_user(
 pub async fn get_user_by_sub(
     pool: &PgPool, 
     sub: &str
-) -> Result<User, String> {
-    let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE sub = $1")
+) -> Result<UserEntity, String> {
+    let user = sqlx::query_as::<_, UserEntity>("SELECT * FROM users WHERE sub = $1")
         .bind(sub)
         .fetch_one(pool)
         .await

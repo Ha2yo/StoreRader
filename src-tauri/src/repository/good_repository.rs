@@ -1,8 +1,9 @@
+use chrono::Utc;
 use reqwest::{header::USER_AGENT, Client};
 use quick_xml::de::from_str;
 use serde::Deserialize;
 use sqlx::PgPool;
-use crate::config::env::get_env_value;
+use crate::{config::env::get_env_value, entity::good_entity::GoodEntity};
 
 // 한국소비자원 상품정보 API 구조체
 #[derive(Debug, Deserialize)]
@@ -31,16 +32,8 @@ struct ApiItem {
     good_total_div_code: Option<String>,
 }
 
-// DB 저장용 구조체
-struct Goods {
-    good_id: String,
-    good_name: String,
-    total_cnt: Option<i32>,
-    total_div_code: Option<String>,
-}
-
 // API 데이터 받아서 DB에 저장
-pub async fn fetch_and_save_goods(pool: &PgPool) -> Result<(), String> {
+pub async fn upsert_good(pool: &PgPool) -> Result<(), String> {
     let service_key = get_env_value("PUBLIC_API_KEY");
     // 요청 URL 생성
     let url = format!(
@@ -64,37 +57,37 @@ pub async fn fetch_and_save_goods(pool: &PgPool) -> Result<(), String> {
     let mut count = 0;
 
     for item in parsed.result.items {
-        let good = Goods {
-            good_id: item.good_id.clone(),
-            good_name: item.good_name.clone(),
-            total_cnt: item.good_total_cnt.as_ref().and_then(|s| s.parse::<i32>().ok()),
-            total_div_code: item.good_total_div_code.clone(),
-        };
+        let good = GoodEntity {
+        id: 0, // SERIAL이므로 임시값
+        good_id: item.good_id.clone(),
+        good_name: item.good_name.clone(),
+        total_cnt: item.good_total_cnt.as_ref().and_then(|s| s.parse::<i32>().ok()),
+        total_div_code: item.good_total_div_code.clone(),
+        created_at: Utc::now(),
+        updated_at: Utc::now(),
+    };
 
-        // DB에 삽입 (이미 있으면 업데이트)
-        sqlx::query!(
-            r#"
-            INSERT INTO goods (good_id, good_name, total_cnt, total_div_code)
+    sqlx::query_as::<_, GoodEntity>(
+    "INSERT INTO goods (good_id, good_name, total_cnt, total_div_code)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (good_id)
             DO UPDATE SET
                 good_name = EXCLUDED.good_name,
                 total_cnt = EXCLUDED.total_cnt,
                 total_div_code = EXCLUDED.total_div_code,
-                updated_at = NOW()
-            "#,
-            good.good_id,
-            good.good_name,
-            good.total_cnt,
-            good.total_div_code
-        )
-        .execute(pool)
-        .await
-        .map_err(|e| format!("DB 저장 실패 ({}): {}", good.good_name, e))?;
+                updated_at = NOW()",
+    )
+    .bind(&good.good_id)
+    .bind(&good.good_name)
+    .bind(good.total_cnt)
+    .bind(&good.total_div_code)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| format!("상품 데이터 업데이트 실패: {}", e))?;
 
         count += 1;
     }
-    tracing::info!("{}개의 상품 데이터 DB에 추가 및 업데이트 완료", count);
+    tracing::info!("총 {}개의 상품 데이터 DB에 추가 및 업데이트 완료", count);
 
     Ok(())
 }

@@ -33,7 +33,7 @@ use reqwest::Method;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use storerader_lib::{auth::handler::auth_google_handler, repository::goods::fetch_and_save_goods};
+use storerader_lib::{auth::handler::auth_google_handler, repository::{good_repository::{upsert_good}, store_repository::upsert_store}};
 use storerader_lib::config::{database::connect_db, env::init_env};
 
 #[tokio::main]
@@ -50,7 +50,9 @@ async fn main() {
     // 데이터베이스 풀 생성
     let pool = connect_db().await;
 
-    fetch_and_save_goods(&pool).await.unwrap();
+    upsert_good(&pool).await.unwrap();
+    upsert_store(&pool).await.unwrap();
+
 
     // CORS 설정
     let cors = CorsLayer::new()
@@ -66,7 +68,7 @@ async fn main() {
         .with_state(pool.clone());
 
     // 서버 실행
-    tracing::info!("Server started on http://localhost:3000");
+    tracing::info!("서버가 http://localhost:3000에서 시작되었습니다");
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }

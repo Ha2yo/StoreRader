@@ -53,7 +53,7 @@ use crate::{
         res::{GoogleLoginRes, UserRes},
     },
     config::env::get_env_value,
-    repository::user::find_and_create_user,
+    repository::user_repository::find_and_create_user,
 };
 
 // Google ID Token Claims 구조체

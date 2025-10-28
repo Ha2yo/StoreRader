@@ -6,4 +6,6 @@
     - users 테이블 매핑 구조체
 ***********************************************************/
 
-pub mod user;
+pub mod user_entity;
+pub mod good_entity;
+pub mod store_entity;

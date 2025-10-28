@@ -14,11 +14,10 @@
 ***********************************************************/
 
 use chrono::NaiveDateTime;
-use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 
-#[derive(Serialize, Deserialize, FromRow)]
-pub struct User {
+#[derive(Debug, FromRow, Clone)]
+pub struct UserEntity {
     pub id: i32,
     pub sub: String,
     pub email: String,

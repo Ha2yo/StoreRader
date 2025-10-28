@@ -5,5 +5,6 @@
     - user 테이블 관련 CRUD 함수 정의
 ***********************************************************/
 
-pub mod user;
-pub mod goods;
+pub mod user_repository;
+pub mod good_repository;
+pub mod store_repository;

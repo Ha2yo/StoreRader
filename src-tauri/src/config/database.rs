@@ -35,6 +35,6 @@ pub async fn connect_db() -> sqlx::PgPool {
         .await
         .expect("데이터베이스 연결에 실패했습니다. DATABASE_URL 또는 네트워크 설정을 확인하세요.");
 
-    tracing::info!("Database has been connected");
+    tracing::info!("데이터베이스 연결 완료");
     pool
 }
