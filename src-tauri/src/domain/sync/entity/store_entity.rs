@@ -1,7 +1,6 @@
 use chrono::{DateTime, Utc};
 use sqlx::FromRow;
 
-// StoreEntity — stores 테이블의 한 행(Row)을 표현
 #[derive(Debug, FromRow, Clone)]
 pub struct StoreEntity {
     pub id: i32,

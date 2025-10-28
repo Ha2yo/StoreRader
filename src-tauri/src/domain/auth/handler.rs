@@ -11,8 +11,8 @@ use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 use sqlx::PgPool;
 
-use super::service;
-use crate::auth::dto::req::GoogleLoginReq;
+use crate::domain::auth::service;
+use crate::domain::auth::dto::req_dto::GoogleLoginReq;
 
 // auth_google_handler()
 // 기능: Google 로그인 요청 처리 핸들러

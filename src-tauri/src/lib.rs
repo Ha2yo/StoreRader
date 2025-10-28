@@ -11,11 +11,9 @@
       4) 앱 실행 및 에러 핸들링
 ***********************************************************/
 
-pub mod auth;
+pub mod domain;
 pub mod commands; // Tauri에서 호출 가능한 커맨드 정의
 pub mod config; // 환경 변수 초기화 및 설정 관련 기능 관리
-pub mod entity; // 데이터 구조체 정의
-pub mod repository; // 데이터베이스 CRUD 로직 관리 // 인증 및 JWT 관련 로직 담당
 
 use commands::env::c_get_env_value;
 use config::env::init_env;

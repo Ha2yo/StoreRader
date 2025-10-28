@@ -47,14 +47,8 @@ use jsonwebtoken::{
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::{
-    auth::dto::{
-        req::GoogleLoginReq,
-        res::{GoogleLoginRes, UserRes},
-    },
-    config::env::get_env_value,
-    repository::user_repository::find_and_create_user,
-};
+use crate::{config::env::get_env_value, domain::auth::{dto::{req_dto::GoogleLoginReq, res_dto::{GoogleLoginRes, UserRes}}, repository::find_and_create_user}};
+
 
 // Google ID Token Claims 구조체
 // verify_google_id_token()에서 토큰 해독 후 사용자 정보 추출 시 사용

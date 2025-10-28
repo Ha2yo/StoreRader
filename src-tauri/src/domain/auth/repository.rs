@@ -13,7 +13,7 @@
 
 use sqlx::{PgPool, Error};
 
-use crate::entity::user_entity::UserEntity;
+use crate::domain::auth::entity::UserEntity;
 
 // find_and_create_user()
 // 기능: sub로 사용자 조회 후 없으면 생성 (있으면 last_login 갱신)
