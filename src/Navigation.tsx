@@ -8,7 +8,6 @@
               (해당 영역 클릭 시 각 페이지로 이동)
 ***********************************************************/
 
-import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Nav, Navbar } from 'react-bootstrap';
 import { Link } from 'react-router-dom';

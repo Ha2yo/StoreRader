@@ -5,7 +5,7 @@ function MapPage() {
   console.log('지도 화면 로딩');
 
   return (
-    <div className='container'>
+    <div>
         <Map />
     </div>
   );
