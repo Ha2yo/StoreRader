@@ -14,6 +14,7 @@
 pub mod domain;
 pub mod commands; // Tauri에서 호출 가능한 커맨드 정의
 pub mod config; // 환경 변수 초기화 및 설정 관련 기능 관리
+pub mod common;
 
 use commands::env::c_get_env_value;
 use config::env::init_env;

@@ -47,7 +47,7 @@ use jsonwebtoken::{
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::{config::env::get_env_value, domain::auth::{dto::{req_dto::GoogleLoginReq, res_dto::{GoogleLoginRes, UserRes}}, repository::find_and_create_user}};
+use crate::{common::repository::repository_user::find_and_create_user, config::env::get_env_value, domain::auth::dto::{req_dto::GoogleLoginReq, res_dto::{GoogleLoginRes, UserRes}}};
 
 
 // Google ID Token Claims 구조체

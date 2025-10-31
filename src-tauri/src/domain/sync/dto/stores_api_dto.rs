@@ -26,7 +26,7 @@ pub struct ApiItem {
     #[serde(rename = "postNo")]
     pub post_no: Option<String>,
     #[serde(rename = "plmkAddrBasic")]
-    pub plmk_addr: Option<String>,
+    pub jibun_addr: Option<String>,
     #[serde(rename = "roadAddrBasic")]
     pub road_addr: Option<String>,
     #[serde(rename = "xMapCoord")]

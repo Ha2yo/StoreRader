@@ -6,8 +6,8 @@ CREATE TABLE IF NOT EXISTS stores(
     post_no VARCHAR(10),
     plmk_addr VARCHAR(255) NOT NULL,
     road_addr VARCHAR(255) NOT NULL,
-    x_coord NUMERIC(18,15),
-    y_coord NUMERIC(18,15),
+    x_coord DOUBLE PRECISION,
+    y_coord DOUBLE PRECISION,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );

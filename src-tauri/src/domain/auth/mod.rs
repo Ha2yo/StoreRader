@@ -14,5 +14,3 @@
 pub mod dto;
 pub mod handler;
 pub mod service;
-pub mod entity;
-pub mod repository;

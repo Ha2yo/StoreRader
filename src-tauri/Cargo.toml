@@ -63,3 +63,4 @@ tower-http = { version = "0.6.6", features = ["cors"] }
 async-trait = "0.1.89"
 
 quick-xml = { version = "0.38.3", features = ["serialize"] }
+urlencoding = "2.1.3"

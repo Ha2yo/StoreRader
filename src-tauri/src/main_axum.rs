@@ -33,7 +33,13 @@ use reqwest::Method;
 use tower_http::cors::{Any, CorsLayer};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
-use storerader_lib::{config::{database::connect_db, env::init_env}, domain::{auth::handler::auth_google_handler, sync::service::upsert_api_data}};
+use storerader_lib::{
+    config::{database::connect_db, env::init_env},
+    domain::{
+        auth::handler::auth_google_handler,
+        sync::service::upsert_api_data,
+    },
+};
 
 #[tokio::main]
 async fn main() {
@@ -56,7 +62,7 @@ async fn main() {
         .allow_origin(Any)
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(Any);
-
+    
     // 라우터 구성
     let app = Router::new()
         .route("/", get(|| async { "OK" }))

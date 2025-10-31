@@ -14,7 +14,7 @@ export let currentLocation: { lat: number; lng: number } | null = null;
   const naver_map_key = await invoke<string>("c_get_env_value", { name: "NAVER_MAP_CLIENT_ID" });
 
 const script = document.createElement('script');
-script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${naver_map_key}`;
+script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${naver_map_key}&submodules=geocoder`;
 script.type = 'text/javascript';
 document.head.appendChild(script);
 
