@@ -13,7 +13,7 @@
 
 import { signIn, signOut } from '@choochmeque/tauri-plugin-google-auth-api';
 import { invoke } from '@tauri-apps/api/core';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 function Login() {
   const { user, login, logout } = useAuth(); // 전역 Auth 사용

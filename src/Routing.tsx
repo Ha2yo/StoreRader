@@ -20,7 +20,7 @@ import MyPage from './pages/MyPage.tsx';
 import MapPage from './pages/MapPage';
 import Navigation from './Navigation';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./auth/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext.tsx";
 
 function Routing() {
     return (
