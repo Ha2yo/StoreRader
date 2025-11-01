@@ -28,6 +28,7 @@ pub fn run() {
         // 플러그인 등록
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_google_auth::init())
+        .plugin(tauri_plugin_geolocation::init())
         // command 등록
         .invoke_handler(tauri::generate_handler![c_get_env_value,])
         // 실행

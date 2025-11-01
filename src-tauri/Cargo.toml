@@ -64,3 +64,6 @@ async-trait = "0.1.89"
 
 quick-xml = { version = "0.38.3", features = ["serialize"] }
 urlencoding = "2.1.3"
+
+tauri-plugin-geolocation = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v2" }
+
