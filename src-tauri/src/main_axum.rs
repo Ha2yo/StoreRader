@@ -36,8 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler,
-        sync::service::upsert_api_data,
+        auth::handler::auth_google_handler, store::handler::get_all_stores_handler, sync::service::upsert_api_data
     },
 };
 
@@ -67,6 +66,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
         .route("/auth/google", post(auth_google_handler))
+        .route("/stores", get(get_all_stores_handler))
         .layer(cors)
         .with_state(pool.clone());
 

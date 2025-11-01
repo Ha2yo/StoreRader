@@ -12,7 +12,7 @@ use serde_json::json;
 use sqlx::PgPool;
 
 use crate::domain::auth::service;
-use crate::domain::auth::dto::req_dto::GoogleLoginReq;
+use crate::domain::auth::dto::dto_req::GoogleLoginReq;
 
 // auth_google_handler()
 // 기능: Google 로그인 요청 처리 핸들러

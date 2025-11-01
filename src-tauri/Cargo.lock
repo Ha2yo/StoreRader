@@ -4322,7 +4322,6 @@ dependencies = [
  "sqlx",
  "tauri",
  "tauri-build",
- "tauri-plugin-geolocation",
  "tauri-plugin-google-auth",
  "tauri-plugin-opener",
  "tokio",
@@ -4633,19 +4632,6 @@ dependencies = [
  "tauri-utils",
  "toml 0.9.7",
  "walkdir",
-]
-
-[[package]]
-name = "tauri-plugin-geolocation"
-version = "2.3.2"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#ea172bfa3cef8ba4021095a033d1a6f152c28c3e"
-dependencies = [
- "log",
- "serde",
- "serde_json",
- "tauri",
- "tauri-plugin",
- "thiserror 2.0.17",
 ]
 
 [[package]]

@@ -2,6 +2,19 @@ import { useContext, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { LocationContext } from "../contexts/LocationProvider";
+import { invoke } from "@tauri-apps/api/core";
+
+interface Store {
+  id: number;
+  store_id: string;
+  store_name: string;
+  tel_no: string | null;
+  post_no: string | null;
+  jibun_addr: string;
+  road_addr: string;
+  x_coord: number | null;
+  y_coord: number | null;
+}
 
 function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -21,6 +34,26 @@ function Map() {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
+    (async () => {
+      try {
+        const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
+        const res = await fetch(`${apiURL}/stores`);
+        const stores: Store[] = await res.json();
+
+        stores.forEach((store) => {
+          if (store.x_coord && store.y_coord) {
+            const marker = L.marker([store.x_coord, store.y_coord]).addTo(map);
+            marker.bindPopup(`
+            <b>${store.store_name}</b><br/>
+            ${store.jibun_addr || "주소 없음"}<br/>
+            ${store.tel_no ? `☎ ${store.tel_no}` : ""}
+          `);
+          }
+        });
+      } catch (err) {
+        console.error("매장 데이터 불러오기 실패:", err);
+      }
+    })();
 
     // 기본 중심
     map.setView([37.5665, 126.9780], 15);
@@ -56,7 +89,10 @@ function Map() {
     const map = leafletMap.current;
     if (!map || !position) return;
     const { latitude, longitude } = position.coords;
-    map.setView([latitude, longitude], 16);
+    map.flyTo([latitude, longitude], 16, {
+      animate: true,
+      duration: 1.5, // 이동 시간(초)
+    });
     setIsAutoCenter(true);
     console.log("내 위치로 이동");
   };
@@ -72,7 +108,7 @@ function Map() {
         }}
       />
 
-      
+
       <button
         onClick={handleRecenter}
         style={{
