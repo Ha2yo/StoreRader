@@ -1,0 +1,3 @@
+ALTER TABLE prices
+ALTER COLUMN is_one_plus_one SET DEFAULT 'N',
+ALTER COLUMN is_discount SET DEFAULT 'N';

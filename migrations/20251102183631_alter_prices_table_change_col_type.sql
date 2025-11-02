@@ -1,0 +1,5 @@
+ALTER TABLE prices
+ALTER COLUMN is_one_plus_one TYPE VARCHAR(2);
+
+ALTER TABLE prices
+ALTER COLUMN is_discount TYPE VARCHAR(2);

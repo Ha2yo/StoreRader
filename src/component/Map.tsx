@@ -58,7 +58,7 @@ function Map() {
     (async () => {
       try {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
-        const res = await fetch(`${apiURL}/stores/all`);
+        const res = await fetch(`${apiURL}/getStoreInfo/all`);
         const stores: Store[] = await res.json();
 
         stores.forEach((store) => {

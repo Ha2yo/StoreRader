@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, store::handler::get_all_stores_handler, sync::service::upsert_api_data
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, store::handler::{get_all_stores_handler, get_stores_by_good_id}, sync::{handler::{upsert_api_data_handler, upsert_prices_handler}}
     },
 };
 
@@ -54,8 +54,6 @@ async fn main() {
     // 데이터베이스 풀 생성
     let pool = connect_db().await;
 
-    upsert_api_data(&pool).await;
-
     // CORS 설정
     let cors = CorsLayer::new()
         .allow_origin(Any)
@@ -65,9 +63,12 @@ async fn main() {
     // 라우터 구성
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
+        .route("/sync/goodsAndStores", get(upsert_api_data_handler))
+        .route("/sync/Prices", get(upsert_prices_handler))
         .route("/auth/google", post(auth_google_handler))
-        .route("/stores/all", get(get_all_stores_handler))
-        .route("/goods/all", get(get_all_goods_handler))
+        .route("/getStoreInfo/all", get(get_all_stores_handler))
+        .route("/getStoreInfo", get(get_stores_by_good_id))
+        .route("/getGoodInfo/all", get(get_all_goods_handler))
         .layer(cors)
         .with_state(pool.clone());
 

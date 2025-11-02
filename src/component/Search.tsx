@@ -21,7 +21,7 @@ function Search() {
     const fetchGoods = async () => {
       try {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
-        const res = await fetch(`${apiURL}/goods/all`);
+        const res = await fetch(`${apiURL}/getGoodInfo/all`);
         const data: Good[] = await res.json();
         setGoods(data);
         console.log("상품목록 불러오기 완료:", data.length, "개");

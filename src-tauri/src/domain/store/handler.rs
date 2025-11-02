@@ -1,8 +1,8 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{Json, extract::{Query, State}, http::StatusCode, response::IntoResponse};
 use serde_json::json;
 use sqlx::PgPool;
 
-use crate::domain::store::service;
+use crate::domain::store::{dto::dto_req::GoodIdRes, service};
 
 pub async fn get_all_stores_handler(State(pool): State<PgPool>) -> impl IntoResponse {
     match service::get_all_stores(&pool).await {
@@ -12,4 +12,8 @@ pub async fn get_all_stores_handler(State(pool): State<PgPool>) -> impl IntoResp
             Json(json!({ "message": e })).into_response(),
         ),
     }
+}
+
+pub async fn get_stores_by_good_id(Query(param): Query<GoodIdRes>) -> impl IntoResponse {
+    format!("good_id = {}", param.good_id)
 }
