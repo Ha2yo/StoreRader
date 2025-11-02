@@ -7,7 +7,7 @@ import Routing from "./Routing";
 import React from "react";
 import './App.css';
 import ReactDOM from "react-dom/client";
-import LocationProvider from "./contexts/LocationProvider";
+import LocationProvider from "./contexts/LocationContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

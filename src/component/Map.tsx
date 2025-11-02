@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LocationContext } from "../contexts/LocationProvider";
+import { LocationContext } from "../contexts/LocationContext";
 import { invoke } from "@tauri-apps/api/core";
 
 interface Store {
@@ -58,7 +58,7 @@ function Map() {
     (async () => {
       try {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
-        const res = await fetch(`${apiURL}/stores`);
+        const res = await fetch(`${apiURL}/stores/all`);
         const stores: Store[] = await res.json();
 
         stores.forEach((store) => {

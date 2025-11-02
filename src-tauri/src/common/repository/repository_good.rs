@@ -23,3 +23,13 @@ pub async fn upsert_good_to_db(pool: &PgPool, good: &GoodEntity) -> Result<(), S
 
     Ok(())
 }
+
+pub async fn get_all_goods(pool: &PgPool) -> Result<Vec<GoodEntity>, String> {
+    let rows = sqlx::query_as::<_, GoodEntity>
+        ("SELECT *FROM goods")
+    .fetch_all(pool)
+    .await
+    .map_err(|e| format!("쿼리 실패: {}", e))?;
+
+    Ok(rows)
+}

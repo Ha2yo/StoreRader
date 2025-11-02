@@ -36,24 +36,11 @@ pub async fn upsert_store_to_db(pool: &PgPool, store: &StoreEntity) -> Result<()
 
 
 pub async fn get_all_stores(pool: &PgPool) -> Result<Vec<StoreEntity>, String> {
-    let rows = sqlx::query_as::<_, StoreEntity>(
-        r#"
-        SELECT 
-            id,
-            store_id,
-            store_name,
-            tel_no,
-            post_no,
-            jibun_addr,
-            road_addr,
-            x_coord,
-            y_coord,
-            created_at,
-            updated_at
-        FROM stores
+    let rows = sqlx::query_as::<_, StoreEntity>
+        ("
+        SELECT * FROM stores
         WHERE x_coord IS NOT NULL AND y_coord IS NOT NULL
-        "#
-    )
+        ")
     .fetch_all(pool)
     .await
     .map_err(|e| format!("쿼리 실패: {}", e))?;
