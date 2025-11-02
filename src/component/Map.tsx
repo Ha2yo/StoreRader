@@ -23,6 +23,27 @@ function Map() {
   const circleRef = useRef<L.Circle | null>(null);
   const position = useContext(LocationContext);
   const [isAutoCenter, setIsAutoCenter] = useState(true);
+  const redIcon = L.icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+    shadowUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+
+    const blackIcon = L.icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png",
+    shadowUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
 
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
@@ -42,12 +63,12 @@ function Map() {
 
         stores.forEach((store) => {
           if (store.x_coord && store.y_coord) {
-            const marker = L.marker([store.x_coord, store.y_coord]).addTo(map);
+            const marker = L.marker([store.x_coord, store.y_coord], { icon: blackIcon }).addTo(map);
             marker.bindPopup(`
-            <b>${store.store_name}</b><br/>
-            ${store.jibun_addr || "주소 없음"}<br/>
-            ${store.tel_no ? `☎ ${store.tel_no}` : ""}
-          `);
+      <b>${store.store_name}</b><br/>
+      ${store.jibun_addr || "주소 없음"}<br/>
+      ${store.tel_no ? `☎ ${store.tel_no}` : ""}
+    `);
           }
         });
       } catch (err) {

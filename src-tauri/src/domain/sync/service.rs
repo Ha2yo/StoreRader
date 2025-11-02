@@ -54,7 +54,7 @@ pub async fn upsert_good(pool: &PgPool) -> Result<(), String> {
         upsert_good_to_db(pool, &good).await?;
         count += 1;
     }
-    tracing::info!("총 {}개의 상품 데이터 업데이트 완료", count);
+    tracing::info!("상품 데이터 {}개 업데이트 완료", count);
 
     Ok(())
 }
@@ -108,6 +108,6 @@ pub async fn upsert_store(pool: &PgPool) -> Result<(), String> {
         count += 1;
     }
     println!();
-    tracing::info!("총 {}개의 매장 데이터 업데이트 완료", count);
+    tracing::info!("매장 데이터 {}개 중 {}개 업데이트 완료", count, success_count);
     Ok(())
 }

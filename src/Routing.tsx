@@ -18,6 +18,7 @@ import App from './App';
 import Home from './pages/Home';
 import MyPage from './pages/MyPage.tsx';
 import MapPage from './pages/MapPage';
+import SearchPage from './pages/SearchPage'
 import Navigation from './Navigation';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
@@ -25,7 +26,7 @@ import { AuthProvider } from "./contexts/AuthContext.tsx";
 function Routing() {
     return (
         <AuthProvider>
-            <div className="App">
+            <div>
                 <BrowserRouter>
                     <Navigation />
                     <Routes>
@@ -33,6 +34,7 @@ function Routing() {
                         <Route path='/home' element={<Home />} />
                         <Route path='/map' element={<MapPage />} />
                         <Route path='/mypage' element={<MyPage />} />
+                        <Route path='/search' element={<SearchPage />} />
                     </Routes>
                 </BrowserRouter>
             </div>
