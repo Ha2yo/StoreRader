@@ -1,5 +1,5 @@
-use sqlx::PgPool;
 use crate::common::entity::entity_price::PriceEntity;
+use sqlx::PgPool;
 
 /// 가격 정보를 DB에 upsert
 pub async fn upsert_price_to_db(pool: &PgPool, price: &PriceEntity) -> Result<(), String> {

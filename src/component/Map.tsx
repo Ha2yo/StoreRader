@@ -16,6 +16,12 @@ interface Store {
   y_coord: number | null;
 }
 
+interface StorePrice {
+  store_id: string;
+  price: number;
+  inspect_day: string;
+}
+
 function Map() {
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<L.Map | null>(null);
@@ -23,6 +29,7 @@ function Map() {
   const circleRef = useRef<L.Circle | null>(null);
   const position = useContext(LocationContext);
   const [isAutoCenter, setIsAutoCenter] = useState(true);
+  const markersRef = useRef<Record<string, L.Marker>>({});
   const redIcon = L.icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
@@ -34,7 +41,7 @@ function Map() {
     shadowSize: [41, 41],
   });
 
-    const blackIcon = L.icon({
+  const blackIcon = L.icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png",
     shadowUrl:
@@ -64,30 +71,52 @@ function Map() {
         stores.forEach((store) => {
           if (store.x_coord && store.y_coord) {
             const marker = L.marker([store.x_coord, store.y_coord], { icon: blackIcon }).addTo(map);
-            marker.bindPopup(`
-      <b>${store.store_name}</b><br/>
-      ${store.jibun_addr || "주소 없음"}<br/>
-      ${store.tel_no ? `☎ ${store.tel_no}` : ""}
-    `);
+            marker.bindPopup(
+              `<b>${store.store_name}</b><br/>${store.jibun_addr || "주소 없음"}<br/>${store.tel_no ? `☎ ${store.tel_no}` : ""
+              }`
+            );
+            markersRef.current[store.store_id] = marker;
           }
         });
+
+        const selectedGoodName = localStorage.getItem("selectedGoodName");
+        if (selectedGoodName) {
+          const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
+          const priceData: StorePrice[] = await priceRes.json();
+
+          // ① 모든 마커를 기본색으로 초기화
+          Object.values(markersRef.current).forEach((m) => m.setIcon(blackIcon));
+
+          // ② 가격 데이터 있는 매장만 빨간색 + 가격 툴팁 표시
+          priceData.forEach((p) => {
+            const key = String(p.store_id).trim();
+            const marker = markersRef.current[key];
+            if (marker) {
+              marker.setIcon(redIcon);
+              marker.bindTooltip(`₩${p.price.toLocaleString()}`, {
+                permanent: true,
+                direction: "top",
+                offset: L.point(0, -10),
+                className: "price-tooltip",
+              }).openTooltip();
+            }
+          });
+
+        }
       } catch (err) {
         console.error("매장 데이터 불러오기 실패:", err);
       }
     })();
 
-    // 기본 중심
-    map.setView([37.5665, 126.9780], 15);
+    map.setView([37.5665, 126.978], 15);
 
-    // 사용자가 지도 드래그하면 자동 중심 이동 해제
     map.on("dragstart", () => {
       if (isAutoCenter) {
         setIsAutoCenter(false);
       }
     });
-  }, [isAutoCenter]);
+  }, [isAutoCenter, blackIcon, redIcon]);
 
-  // 위치 업데이트 시 마커/원 표시 및 (필요시) 중심 이동
   useEffect(() => {
     const map = leafletMap.current;
     if (!map || !position) return;
@@ -105,17 +134,15 @@ function Map() {
     }
   }, [position, isAutoCenter]);
 
-  // 버튼 클릭 시 내 위치로 이동
   const handleRecenter = () => {
     const map = leafletMap.current;
     if (!map || !position) return;
     const { latitude, longitude } = position.coords;
     map.flyTo([latitude, longitude], 16, {
       animate: true,
-      duration: 1.5, // 이동 시간(초)
+      duration: 1.5,
     });
     setIsAutoCenter(true);
-    console.log("내 위치로 이동");
   };
 
   return (
@@ -128,7 +155,6 @@ function Map() {
           height: "100%",
         }}
       />
-
 
       <button
         onClick={handleRecenter}

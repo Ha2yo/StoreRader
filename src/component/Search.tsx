@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface Good {
   id: number;
@@ -11,11 +12,31 @@ interface Good {
   updated_at: string;
 }
 
+interface SearchProps {
+  onSelect: (good: Good) => void;
+}
+
 function Search() {
-  
   const inputRef = useRef<HTMLInputElement>(null);
   const [goods, setGoods] = useState<Good[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedTerm = localStorage.getItem("lastSearchTerm");
+    if (savedTerm) {
+      setSearchTerm(savedTerm);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      localStorage.removeItem("lastSearchTerm");
+    } else {
+      localStorage.setItem("lastSearchTerm", searchTerm);
+    }
+  }, [searchTerm]);
 
   useEffect(() => {
     const fetchGoods = async () => {
@@ -37,7 +58,7 @@ function Search() {
       inputRef.current?.focus();
     }, 200);
     return () => clearTimeout(timer);
-    
+
   }, []);
 
   const filteredGoods = goods.filter((g) =>
@@ -74,7 +95,11 @@ function Search() {
               borderBottom: "1px solid #eee",
               cursor: "pointer",
             }}
-            onClick={() => setSearchTerm(g.good_name)} // 클릭 시 입력창에 반영
+            onClick={() => {
+              setSearchTerm(g.good_name);
+              localStorage.setItem("selectedGoodName", g.good_name);
+              navigate("/map");
+            }}
           >
             {g.good_name}
           </li>
