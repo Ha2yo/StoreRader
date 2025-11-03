@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { LocationContext } from "../contexts/LocationContext";
 import { invoke } from "@tauri-apps/api/core";
 
+// Store: 매장 기본 정보 구조체
 interface Store {
   id: number;
   store_id: string;
@@ -16,6 +17,7 @@ interface Store {
   y_coord: number | null;
 }
 
+// StorePrice: 특정 상품의 매장별 가격 정보 구조체
 interface StorePrice {
   store_id: string;
   price: number;
@@ -27,9 +29,24 @@ function Map() {
   const leafletMap = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
+
+  // 현재 GPS 위치 (LocationContext에서 제공)
   const position = useContext(LocationContext);
   const [isAutoCenter, setIsAutoCenter] = useState(true);
   const markersRef = useRef<Record<string, L.Marker>>({});
+
+  // 마커 아이콘 정의 (색상별)
+  const blueIcon = L.icon({
+  iconUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+  shadowUrl:
+    "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
   const redIcon = L.icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
@@ -52,6 +69,7 @@ function Map() {
     shadowSize: [41, 41],
   });
 
+  // 지도 초기화 + 매장 데이터 표시
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
@@ -62,12 +80,15 @@ function Map() {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
+
+    // 매장 데이터 서버에서 불러오기
     (async () => {
       try {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
         const res = await fetch(`${apiURL}/getStoreInfo/all`);
         const stores: Store[] = await res.json();
 
+        // 모든 매장 마커 표시 (기본: 검정색)
         stores.forEach((store) => {
           if (store.x_coord && store.y_coord) {
             const marker = L.marker([store.x_coord, store.y_coord], { icon: blackIcon }).addTo(map);
@@ -79,15 +100,17 @@ function Map() {
           }
         });
 
+        // 최근 선택된 상품 이름 불러오기
         const selectedGoodName = localStorage.getItem("selectedGoodName");
         if (selectedGoodName) {
+          // 매장별 가격 데이터 불러오기
           const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
           const priceData: StorePrice[] = await priceRes.json();
 
-          // ① 모든 마커를 기본색으로 초기화
+          // 모든 마커를 기본색으로 초기화
           Object.values(markersRef.current).forEach((m) => m.setIcon(blackIcon));
 
-          // ② 가격 데이터 있는 매장만 빨간색 + 가격 툴팁 표시
+          // 가격 데이터 있는 매장만 빨간색 + 가격 툴팁 표시
           priceData.forEach((p) => {
             const key = String(p.store_id).trim();
             const marker = markersRef.current[key];
@@ -117,23 +140,26 @@ function Map() {
     });
   }, [isAutoCenter, blackIcon, redIcon]);
 
-  useEffect(() => {
-    const map = leafletMap.current;
-    if (!map || !position) return;
+// 유저 위치 마커 표시
+useEffect(() => {
+  const map = leafletMap.current;
+  if (!map || !position) return;
 
-    const { latitude, longitude, accuracy } = position.coords;
+  const { latitude, longitude, accuracy } = position.coords;
 
-    if (markerRef.current) map.removeLayer(markerRef.current);
-    if (circleRef.current) map.removeLayer(circleRef.current);
+  // 기존 마커 / 원 제거 후 새로 추가
+  if (markerRef.current) map.removeLayer(markerRef.current);
+  if (circleRef.current) map.removeLayer(circleRef.current);
 
-    markerRef.current = L.marker([latitude, longitude]).addTo(map);
-    circleRef.current = L.circle([latitude, longitude], { radius: accuracy }).addTo(map);
+  markerRef.current = L.marker([latitude, longitude], { icon: blueIcon }).addTo(map);
+  circleRef.current = L.circle([latitude, longitude], { radius: accuracy }).addTo(map);
 
-    if (isAutoCenter) {
-      map.setView([latitude, longitude], 16);
-    }
-  }, [position, isAutoCenter]);
+  // 지도 중심을 내 위치로 이동
+  map.setView([latitude, longitude], 16);
+}, []);
 
+
+  // 내 위치로 이동 버튼 클릭시 호출
   const handleRecenter = () => {
     const map = leafletMap.current;
     if (!map || !position) return;
@@ -145,6 +171,7 @@ function Map() {
     setIsAutoCenter(true);
   };
 
+  // 지도 및 버튼 렌더링
   return (
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
       <div

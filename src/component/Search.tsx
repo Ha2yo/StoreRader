@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Good: 상품 정보 구조체
 interface Good {
   id: number;
   good_id: string;
@@ -12,10 +13,6 @@ interface Good {
   updated_at: string;
 }
 
-interface SearchProps {
-  onSelect: (good: Good) => void;
-}
-
 function Search() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [goods, setGoods] = useState<Good[]>([]);
@@ -23,6 +20,7 @@ function Search() {
 
   const navigate = useNavigate();
 
+  // 마지막 검색어 로드
   useEffect(() => {
     const savedTerm = localStorage.getItem("lastSearchTerm");
     if (savedTerm) {
@@ -30,6 +28,7 @@ function Search() {
     }
   }, []);
 
+  // 검색어 상태 변화 시 로컬스토리지 업데이트
   useEffect(() => {
     if (searchTerm.trim() === "") {
       localStorage.removeItem("lastSearchTerm");
@@ -38,6 +37,7 @@ function Search() {
     }
   }, [searchTerm]);
 
+  // 상품 목록 서버에서 불러오기
   useEffect(() => {
     const fetchGoods = async () => {
       try {
@@ -53,6 +53,7 @@ function Search() {
     fetchGoods();
   }, []);
 
+  // 모바일에서 입력창 자동 활성화
   useEffect(() => {
     const timer = setTimeout(() => {
       inputRef.current?.focus();
@@ -61,6 +62,7 @@ function Search() {
 
   }, []);
 
+  // 검색어 필터링
   const filteredGoods = goods.filter((g) =>
     g.good_name.toLowerCase().includes(searchTerm.toLowerCase())
   );

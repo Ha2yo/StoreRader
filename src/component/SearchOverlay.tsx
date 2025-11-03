@@ -5,6 +5,7 @@ function Search() {
   const navigate = useNavigate();
   const [lastSearch, setLastSearch] = useState("");
 
+  // 컴포넌트 로드시 마지막 검색어 불러오기
   useEffect(() => {
     const saved = localStorage.getItem("lastSearchTerm");
     if (saved) {
@@ -12,6 +13,7 @@ function Search() {
     }
   }, []);
 
+  // 렌더링
   return (
     <input
       type="text"
