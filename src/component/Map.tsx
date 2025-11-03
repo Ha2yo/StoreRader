@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { LocationContext } from "../contexts/LocationContext";
 import { invoke } from "@tauri-apps/api/core";
 import { useNavigate } from "react-router-dom";
+import StoreDetailPanel from "./StoreDetailPanel";
 
 // Store: 매장 기본 정보 구조체
 interface Store {
@@ -210,49 +211,15 @@ function Map() {
       >
         🧭
       </button>
-      {selectedStore && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "0",
-            left: "0",
-            width: "100%",
-            background: "#fff",
-            borderTopLeftRadius: "16px",
-            borderTopRightRadius: "16px",
-            boxShadow: "0 -4px 10px rgba(0,0,0,0.2)",
-            padding: "16px",
-            zIndex: 2000,
-            maxHeight: "40vh",
-          }}
-        >
-          <h3 style={{ margin: "0 0 8px 0" }}>{selectedStore.store_name}</h3>
-          <p>{selectedStore.road_addr}</p>
-          <p>{selectedStore.jibun_addr}</p>
-          <p>📞 {selectedStore.tel_no ?? "전화번호 없음"}</p>
 
-          <button
-            style={{
-              marginTop: "10px",
-              width: "100%",
-              padding: "10px",
-              background: "#007bff",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              marginBottom: "env(safe-area-inset-bottom)",
-            }}
-            onClick={() => setSelectedStore(null)}
-          >
-            <p></p>
-            닫기
-          </button>
-        </div>
+      {selectedStore && (
+        <StoreDetailPanel
+          store={selectedStore}
+          onClose={() => setSelectedStore(null)}
+        />
       )}
     </div>
-
   );
-
 }
 
 export default Map;
