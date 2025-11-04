@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, price::handler::get_prices_handler, store::handler::{get_all_stores_handler, get_stores_by_good_id}, sync::handler::{upsert_api_data_handler, upsert_prices_handler}
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, price::handler::get_prices_handler, store::handler::{get_all_stores_handler, get_stores_by_good_id}, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
     },
 };
 
@@ -64,6 +64,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
         .route("/sync/goodsAndStores", get(upsert_api_data_handler))
+        .route("/sync/regionCodes", get(upsert_region_codes_handler))
         .route("/sync/Prices", get(upsert_prices_handler))
         .route("/auth/google", post(auth_google_handler))
         .route("/getStoreInfo/all", get(get_all_stores_handler))

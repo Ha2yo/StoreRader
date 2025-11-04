@@ -70,3 +70,25 @@ pub async fn fetch_prices_api(inspect_day: &str, store_id: &str) -> Result<Strin
 
     res.text().await.map_err(|e| format!("가격 본문 읽기 실패: {}", e))
 }
+
+pub async fn fetch_region_codes_api() -> Result<String, String> {
+    let service_key = get_env_value("PUBLIC_API_KEY");
+    let url = format!(
+        "http://openapi.price.go.kr/openApiImpl/ProductPriceInfoService/getStandardInfoSvc.do?classCode=AR&ServiceKey={}",
+        service_key
+    );
+
+    let client = Client::new();
+    let res = client
+        .get(&url)
+        .header(USER_AGENT, "StoreRader/1.0 (Rust reqwest)")
+        .send()
+        .await
+        .map_err(|e| format!("지역코드 API 요청 실패: {}", e))?;
+
+    if !res.status().is_success() {
+        return Err(format!("지역코드 API 오류 상태: {}", res.status()));
+    }
+
+    res.text().await.map_err(|e| format!("지역코드 본문 읽기 실패: {}", e))
+}

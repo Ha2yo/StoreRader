@@ -5,21 +5,17 @@ use std::io::{self, Write};
 
 use crate::{
     common::{
-        entity::{entity_good::GoodEntity, entity_price::PriceEntity, entity_store::StoreEntity},
+        entity::{entity_good::GoodEntity, entity_price::PriceEntity, entity_region::RegionEntity, entity_store::StoreEntity},
         external::{
-            api_public_data::{fetch_goods_api, fetch_prices_api, fetch_store_api},
+            api_public_data::{fetch_goods_api, fetch_prices_api, fetch_region_codes_api, fetch_store_api},
             api_vworld::geocode_with_vworld,
         },
         repository::{
-            repository_good::upsert_good_to_db,
-            repository_price::upsert_price_to_db,
-            repository_store::{get_all_stores_id, upsert_store_to_db},
+            repository_good::upsert_good_to_db, repository_price::upsert_price_to_db, repository_region::upsert_region_to_db, repository_store::{get_all_stores_id, upsert_store_to_db}
         },
     },
     domain::sync::dto::{
-        dto_prices_api::ApiResponse as priceApiResponse,
-        dto_stores_api::ApiResponse as storeApiResponse,
-        dtp_goods_api::ApiResponse as goodApiResponse,
+        dto_goods_api::ApiResponse as goodApiResponse, dto_prices_api::ApiResponse as priceApiResponse, dto_region_codes_api::ApiResponse as regionCodesApiResponse, dto_stores_api::ApiResponse as storeApiResponse
     },
 };
 
@@ -182,6 +178,36 @@ pub async fn upsert_price(pool: &PgPool, inspect_day: &str) -> Result<(), String
 
     // 로그 출력
     tracing::info!("가격 데이터 {}개 업데이트 완료", total_count);
+
+    Ok(())
+}
+
+pub async fn upsert_region_codes(pool: &PgPool) -> Result<(), String> {
+    // 본문 추출
+    let text = fetch_region_codes_api().await?;
+
+    // XML → 구조체 변환
+    let parsed: regionCodesApiResponse = from_str(&text).map_err(|e| format!("XML 파싱 실패: {}", e))?;
+
+    let mut total_count: i32 = 0;
+
+    for item in parsed.result.items {
+        let level:i16 = if item.high_code == "020000000"{
+            1
+        } else {
+            2
+        };
+        let region = RegionEntity {
+            code: item.code.clone(),
+            name: item.code_name.clone(),
+            parent_code: item.high_code.clone(),
+            level,
+        };
+
+        upsert_region_to_db(pool, &region).await?;
+        total_count += 1;
+    }
+    tracing::info!("지역코드 데이터 {}개 업데이트 완료", total_count);
 
     Ok(())
 }
