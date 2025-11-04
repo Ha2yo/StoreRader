@@ -32,6 +32,7 @@ function Search() {
   useEffect(() => {
     if (searchTerm.trim() === "") {
       localStorage.removeItem("lastSearchTerm");
+      localStorage.removeItem("selectedGoodName");
     } else {
       localStorage.setItem("lastSearchTerm", searchTerm);
     }

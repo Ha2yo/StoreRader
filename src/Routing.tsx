@@ -22,8 +22,6 @@ import SearchPage from './pages/SearchPage'
 import Navigation from './Navigation';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
-import StoreDetailPage from './pages/StoreDetailPage.tsx';
-
 function Routing() {
     return (
         <AuthProvider>
@@ -36,7 +34,6 @@ function Routing() {
                         <Route path='/map' element={<MapPage />} />
                         <Route path='/mypage' element={<MyPage />} />
                         <Route path='/search' element={<SearchPage />} />
-                        <Route path="/store/:storeId" element={<StoreDetailPage />} />
                     </Routes>
                 </BrowserRouter>
             </div>

@@ -1,6 +1,5 @@
-import React, { useContext, useState } from "react";
+import { useState } from "react";
 import { openUrl } from '@tauri-apps/plugin-opener'
-import { LocationContext } from "../contexts/LocationContext";
 
 // 매장 정보 인터페이스 
 interface Store {
@@ -24,8 +23,15 @@ function StoreDetailPanel({ store, onClose }: Props) {
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
 
      // 전역 위치 정보 (사용자 현재 위치)
-    const position = useContext(LocationContext);
+    function loadSavedPosition() {
+    const saved = localStorage.getItem("lastPosition");
+    if (!saved) return null;
 
+    const pos = JSON.parse(saved);
+    return pos; // { lat, lng, accuracy }
+  }
+
+  const pos = loadSavedPosition();
     return (
         <>
             {/* 상세 패널 */}
@@ -66,7 +72,6 @@ function StoreDetailPanel({ store, onClose }: Props) {
                 >
                     길찾기
                 </button>
-
                 {/* 닫기 버튼 */}
                 <button
                     style={{
@@ -77,6 +82,7 @@ function StoreDetailPanel({ store, onClose }: Props) {
                         border: "none",
                         borderRadius: "8px",
                         fontSize: "16px",
+                        marginLeft: "10px"
                     }}
                     onClick={onClose}
                 >
@@ -130,8 +136,8 @@ function StoreDetailPanel({ store, onClose }: Props) {
                             }}
                             onClick={async () => {
                                 if (store.x_coord && store.y_coord) {
-                                    const slat = position!.coords.latitude;
-                                    const slng = position!.coords.longitude;
+                                    const slat = pos.lat;
+                                    const slng = pos.lng;
                                     const sname = encodeURIComponent("내 위치");
                                     const dlat = store.x_coord;
                                     const dlng = store.y_coord;
@@ -158,8 +164,8 @@ function StoreDetailPanel({ store, onClose }: Props) {
                             }}
                             onClick={async() => {
                                 if (store.x_coord && store.y_coord) {
-                                    const slat = position!.coords.latitude;
-                                    const slng = position!.coords.longitude;
+                                    const slat = pos.lat;
+                                    const slng = pos.lng;
                                     const sname = encodeURIComponent("내 위치");
                                     const dlat = store.x_coord;
                                     const dlng = store.y_coord;

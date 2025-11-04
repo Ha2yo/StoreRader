@@ -1,9 +1,7 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { LocationContext } from "../contexts/LocationContext";
 import { invoke } from "@tauri-apps/api/core";
-import { useNavigate } from "react-router-dom";
 import StoreDetailPanel from "./StoreDetailPanel";
 
 // Store: 매장 기본 정보 구조체
@@ -31,16 +29,19 @@ function Map() {
   const leafletMap = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const circleRef = useRef<L.Circle | null>(null);
+  const markersRef = useRef<Record<string, L.Marker>>({});
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
-  const navigate = useNavigate();
+  function loadSavedPosition() {
+    const saved = localStorage.getItem("lastPosition");
+    if (!saved) return null;
 
-  // 현재 GPS 위치 (LocationContext에서 제공)
-  const position = useContext(LocationContext);
-  const [isAutoCenter, setIsAutoCenter] = useState(true);
-  const markersRef = useRef<Record<string, L.Marker>>({});
+    const pos = JSON.parse(saved);
+    return pos; // { lat, lng, accuracy }
+  }
 
-  // 마커 아이콘 정의 (색상별)
+
+  // 마커 아이콘 정의
   const blueIcon = L.icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
@@ -74,7 +75,7 @@ function Map() {
     shadowSize: [41, 41],
   });
 
-  // 지도 초기화 + 매장 데이터 표시
+  // 지도 초기화
   useEffect(() => {
     if (!mapRef.current || leafletMap.current) return;
 
@@ -86,38 +87,34 @@ function Map() {
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    // 매장 데이터 서버에서 불러오기
+    // 앱 시작 시: 저장된 위치 우선 사용
+    const pos = loadSavedPosition();
+    map.setView([pos.lat, pos.lng], 16);
+
+    // 이후 매장 데이터 불러오기
     (async () => {
       try {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
         const res = await fetch(`${apiURL}/getStoreInfo/all`);
         const stores: Store[] = await res.json();
 
-        // 모든 매장 마커 표시 (기본: 검정색)
         stores.forEach((store) => {
           if (store.x_coord && store.y_coord) {
             const marker = L.marker([store.x_coord, store.y_coord], { icon: blackIcon }).addTo(map);
-            marker.on("click", () => {
-              setSelectedStore(store);
-            });
+            marker.on("click", () => setSelectedStore(store));
             markersRef.current[store.store_id] = marker;
           }
         });
 
-        // 최근 선택된 상품 이름 불러오기
+        // 검색 상품 표시
         const selectedGoodName = localStorage.getItem("selectedGoodName");
         if (selectedGoodName) {
-          // 매장별 가격 데이터 불러오기
           const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
           const priceData: StorePrice[] = await priceRes.json();
-
-          // 모든 마커를 기본색으로 초기화
           Object.values(markersRef.current).forEach((m) => m.setIcon(blackIcon));
 
-          // 가격 데이터 있는 매장만 빨간색 + 가격 툴팁 표시
           priceData.forEach((p) => {
-            const key = String(p.store_id).trim();
-            const marker = markersRef.current[key];
+            const marker = markersRef.current[p.store_id];
             if (marker) {
               marker.setIcon(redIcon);
               marker.bindTooltip(`₩${p.price.toLocaleString()}`, {
@@ -128,64 +125,52 @@ function Map() {
               }).openTooltip();
             }
           });
-
         }
       } catch (err) {
         console.error("매장 데이터 불러오기 실패:", err);
       }
     })();
+  }, []);
 
-    map.setView([37.5665, 126.978], 15);
-
-    map.on("dragstart", () => {
-      if (isAutoCenter) {
-        setIsAutoCenter(false);
-      }
-    });
-  }, [isAutoCenter, blackIcon, redIcon]);
-
-  // 유저 위치 마커 표시
+  // 유저 마커
   useEffect(() => {
-    const map = leafletMap.current;
-    if (!map || !position) return;
+  const map = leafletMap.current!;
 
-    const { latitude, longitude, accuracy } = position.coords;
+  function refreshMarker() {
+    const pos = loadSavedPosition();
+    if (!pos) return;
 
-    // 기존 마커 / 원 제거 후 새로 추가
+    // 이전 마커/원 제거
     if (markerRef.current) map.removeLayer(markerRef.current);
     if (circleRef.current) map.removeLayer(circleRef.current);
 
-    markerRef.current = L.marker([latitude, longitude], { icon: blueIcon }).addTo(map);
-    circleRef.current = L.circle([latitude, longitude], { radius: accuracy }).addTo(map);
+    // 새 마커와 원 추가
+    markerRef.current = L.marker([pos.lat, pos.lng], { icon: blueIcon }).addTo(map);
+    circleRef.current = L.circle([pos.lat, pos.lng], { radius: pos.accuracy }).addTo(map);
+  }
 
-    // 지도 중심을 내 위치로 이동
-    map.setView([latitude, longitude], 16);
-  }, []);
+  // 최초 1회 즉시 실행
+  refreshMarker();
 
+  // 5초마다 반복 갱신
+  const intervalId = setInterval(refreshMarker, 5000);
 
-  // 내 위치로 이동 버튼 클릭시 호출
-  const handleRecenter = () => {
-    const map = leafletMap.current;
-    if (!map || !position) return;
-    const { latitude, longitude } = position.coords;
-    map.flyTo([latitude, longitude], 16, {
+  return () => clearInterval(intervalId);
+}, []);
+
+  // 버튼 클릭 시 내 위치로 이동
+  function handleRecenter() {
+    const pos = loadSavedPosition();
+    const map = leafletMap.current!;
+    map.flyTo([pos.lat, pos.lng], 16, {
       animate: true,
       duration: 1.5,
     });
-    setIsAutoCenter(true);
   };
 
-  // 지도 및 버튼 렌더링
   return (
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
-      <div
-        ref={mapRef}
-        id="map"
-        style={{
-          width: "100%",
-          height: "100%",
-        }}
-      />
+      <div ref={mapRef} id="map" style={{ width: "100%", height: "100%" }} />
 
       <button
         onClick={handleRecenter}
@@ -194,8 +179,7 @@ function Map() {
           bottom: "120px",
           right: "20px",
           zIndex: 1000,
-          backgroundColor: "#ffffffff",
-          color: "white",
+          backgroundColor: "#ffffff",
           border: "none",
           borderRadius: "50%",
           width: "50px",
@@ -213,10 +197,7 @@ function Map() {
       </button>
 
       {selectedStore && (
-        <StoreDetailPanel
-          store={selectedStore}
-          onClose={() => setSelectedStore(null)}
-        />
+        <StoreDetailPanel store={selectedStore} onClose={() => setSelectedStore(null)} />
       )}
     </div>
   );
