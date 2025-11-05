@@ -22,6 +22,8 @@ pub async fn get_all_stores(pool: &PgPool) -> Result<Json<Vec<StoreRes>>, String
             y_coord: s.y_coord,
             created_at: s.created_at.to_string(),
             updated_at: s.updated_at.to_string(),
+            area_code: s.area_code,
+            area_detail_code: s.area_detail_code,
         })
         .collect::<Vec<StoreRes>>();
 

@@ -33,4 +33,8 @@ pub struct ApiItem {
     pub x_coord: Option<f64>,
     #[serde(rename = "yMapCoord")]
     pub y_coord: Option<f64>,
+    #[serde(rename = "entpAreaCode")]
+    pub area_code: String,
+    #[serde(rename = "areaDetailCode")]
+    pub area_detail_code: String,
 }

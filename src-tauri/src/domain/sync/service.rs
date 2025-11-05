@@ -100,6 +100,8 @@ pub async fn upsert_store(pool: &PgPool) -> Result<(), String> {
                     y_coord: Some(lon),
                     created_at: Utc::now().naive_utc(),
                     updated_at: Utc::now().naive_utc(),
+                    area_code: item.area_code.clone(),
+                    area_detail_code: item.area_detail_code.clone(),
                 };
                 upsert_store_to_db(pool, &store).await?;
             }
@@ -200,7 +202,7 @@ pub async fn upsert_region_codes(pool: &PgPool) -> Result<(), String> {
         let region = RegionEntity {
             code: item.code.clone(),
             name: item.code_name.clone(),
-            parent_code: item.high_code.clone(),
+            parent_code: Some(item.high_code.clone()),
             level,
         };
 

@@ -13,4 +13,6 @@ pub struct StoreRes {
     pub y_coord: Option<f64>,
     pub created_at: String,
     pub updated_at: String,
+    pub area_code: String,
+    pub area_detail_code: String,
 }

@@ -1,7 +1,7 @@
-use sqlx::FromRow;
+use serde::Serialize;
 
-#[derive(Debug, FromRow, Clone)]
-pub struct RegionEntity {
+#[derive(Serialize)]
+pub struct RegionCodeRes {
     pub code: String,
     pub name: String,
     pub parent_code: Option<String>,

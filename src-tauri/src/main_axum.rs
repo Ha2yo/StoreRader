@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, price::handler::get_prices_handler, store::handler::{get_all_stores_handler, get_stores_by_good_id}, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::{get_all_stores_handler, get_stores_by_good_id}, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
     },
 };
 
@@ -71,6 +71,7 @@ async fn main() {
         .route("/getStoreInfo", get(get_stores_by_good_id))
         .route("/getGoodInfo/all", get(get_all_goods_handler))
         .route("/getPriceInfo", get(get_prices_handler))
+        .route("/getRegionCodeInfo/all", get(get_all_region_codes_handler))
         .layer(cors)
         .with_state(pool.clone());
 

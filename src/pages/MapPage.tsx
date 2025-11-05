@@ -1,6 +1,6 @@
 // src/pages/MapPage.tsx
 import Map from "../component/Map";
-import SearchOverlay from "../component/SearchOverlay";
+import SearchBar from "../component/SearchBar";
 
 function MapPage() {
   console.log("지도 화면 로딩");
@@ -8,7 +8,6 @@ function MapPage() {
   return (
     <div>
       <Map />
-
 
       <div
         style={{
@@ -19,7 +18,7 @@ function MapPage() {
           zIndex: 1000,
         }}
       >
-        <SearchOverlay />
+        <SearchBar />
       </div>
     </div>
   );

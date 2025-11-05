@@ -14,4 +14,6 @@ pub struct StoreEntity {
     pub y_coord: Option<f64>,
     pub created_at: NaiveDateTime,  
     pub updated_at: NaiveDateTime,
+    pub area_code: String,
+    pub area_detail_code: String,
 }
