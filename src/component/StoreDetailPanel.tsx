@@ -12,6 +12,8 @@ interface Store {
     road_addr: string;
     x_coord: number | null;
     y_coord: number | null;
+    price?: number | null;
+    inspect_day?: string | null;
 }
 
 interface Props {
@@ -22,16 +24,39 @@ interface Props {
 function StoreDetailPanel({ store, onClose }: Props) {
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
 
-     // 전역 위치 정보 (사용자 현재 위치)
+    // 전역 위치 정보 (사용자 현재 위치)
     function loadSavedPosition() {
-    const saved = localStorage.getItem("lastPosition");
-    if (!saved) return null;
+        const saved = localStorage.getItem("lastPosition");
+        if (!saved) return null;
 
-    const pos = JSON.parse(saved);
-    return pos; // { lat, lng, accuracy }
-  }
+        const pos = JSON.parse(saved);
+        return pos; // { lat, lng, accuracy }
+    }
 
-  const pos = loadSavedPosition();
+    // 매장과의 거리 구하기 (하버사인 공식 활용)
+    function getDistance(
+        slat: number, slng: number, dlat: number, dlng: number) {
+        const radius = 6371;
+        const toRadian = Math.PI / 180;
+
+        const deltaLat = Math.abs(slat - dlat) * toRadian;
+        const deltaLng = Math.abs(slng - dlng) * toRadian;
+
+        const sinDeltaLat = Math.sin(deltaLat / 2);
+        const sinDeltaLng = Math.sin(deltaLng / 2);
+        const squareRoot = Math.sqrt(
+            sinDeltaLat * sinDeltaLat +
+            Math.cos(slat * toRadian) * Math.cos(dlat * toRadian) * sinDeltaLng * sinDeltaLng);
+
+        const distance = 2 * radius * Math.asin(squareRoot);
+
+        return distance;
+    }
+
+    // 사용자 위치 얻기
+    const pos = loadSavedPosition();
+    // 매장과의 거리 얻기
+    const distanceKm = getDistance(pos.lat, pos.lng, store.x_coord!, store.y_coord!).toFixed(2)
     return (
         <>
             {/* 상세 패널 */}
@@ -48,14 +73,25 @@ function StoreDetailPanel({ store, onClose }: Props) {
                     padding: "16px",
                     paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
                     zIndex: 2000,
-                    maxHeight: "40vh",
+                    maxHeight: "100vh",
                 }}
             >
                 {/* 매장 기본 정보 */}
-                <h3 style={{ margin: "0 0 8px 0" }}>{store.store_name}</h3>
+                <h3 style={{ margin: "0 0 8px 0" }}>{store.store_name} {store.store_id}</h3>
                 <p>{store.road_addr}</p>
                 <p>{store.jibun_addr}</p>
                 <p>📞 {store.tel_no ?? "전화번호 없음"}</p>
+
+                {distanceKm && (
+                    <p>{distanceKm} km</p>
+                )}
+                {store.price !== null && store.price !== undefined && (
+                    <p>₩ {store.price.toLocaleString()}</p>
+                )}
+
+                {store.inspect_day && (
+                    <p>조사일자: {store.inspect_day}</p>
+                )}
 
                 {/* 길찾기 버튼 */}
                 <button
@@ -162,7 +198,7 @@ function StoreDetailPanel({ store, onClose }: Props) {
                                 borderRadius: "8px",
                                 fontSize: "16px",
                             }}
-                            onClick={async() => {
+                            onClick={async () => {
                                 if (store.x_coord && store.y_coord) {
                                     const slat = pos.lat;
                                     const slng = pos.lng;

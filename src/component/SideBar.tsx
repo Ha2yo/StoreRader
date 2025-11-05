@@ -27,24 +27,57 @@ const regions = [
   { name: "세종특별자치시", code: "021700000" },
 ];
 
+// 거리 필터 (단위: km)
+const distances =[
+  { name: "1km", code: "1.00"},
+  { name: "3km", code: "3.00"},
+  { name: "5km", code: "5.00"},
+  { name: "10km", code: "10.00"},
+  { name: "20km", code: "20.00"},
+]
+
 function Sidebar({ onClose }: SidebarProps) {
   const [showRegionList, setShowRegionList] = useState(false);
-  const [selectedRegion, ] = useState<string>( // 현재 선택된 지역 코드
+  const [showDistanceList, setShowDistanceList] = useState(false);
+
+  // 지역 & 거리 선택 상태
+  const [selectedRegion, setSelectedRegion] = useState<string>(
     localStorage.getItem("selectedRegionCode") || "020000000"
   );
+  const [selectedDistance, setSelectedDistance] = useState<string | null>(
+    localStorage.getItem("selectedDistance") || null
+  );
 
-  // 초기 로드 시 로컬스토리지 기본값 설정
+  // 초기 기본값 설정 ("전체"로 설정되게끔)
   useEffect(() => {
     if (!localStorage.getItem("selectedRegionCode")) {
       localStorage.setItem("selectedRegionCode", "020000000");
     }
   }, []);
 
-  // 지역 선택 시 실행되는 함수
+  // 지역 선택 시 (이 때, 거리 선택은 해제)
   const handleRegionSelect = (regionCode: string) => {
+    setSelectedRegion(regionCode);
+    setSelectedDistance(null);
+
     localStorage.setItem("selectedRegionCode", regionCode);
+    localStorage.removeItem("selectedDistance");
+
     window.dispatchEvent(new CustomEvent("regionChange", { detail: regionCode })); // ✅ 추가
     console.log("지역 코드 저장 완료:", regionCode);
+    onClose();
+  };
+
+  // 거리 선택 시 (지역 선택은 해제)
+  const handleDistanceSelect = (distanceCode: string) => {
+    setSelectedDistance(distanceCode);
+    setSelectedRegion("020000000"); // 지역을 "전체"로 초기화
+
+    localStorage.setItem("selectedDistance", distanceCode);
+    localStorage.setItem("selectedRegionCode", "020000000");
+
+    window.dispatchEvent(new CustomEvent("distanceChange", { detail: distanceCode }));
+    console.log("거리 설정 완료:", distanceCode);
     onClose();
   };
 
@@ -160,10 +193,39 @@ function Sidebar({ onClose }: SidebarProps) {
             padding: "8px 0",
             cursor: "pointer",
           }}
-          onClick={() => alert("구현 예정")}
+          onClick={() => setShowDistanceList((prev) => !prev)}
         >
           거리
         </button>
+
+        {showDistanceList && (
+          <div style={{ marginLeft: 10, marginTop: 5 }}>
+            {distances.map((distance) => (
+              <button
+                key={distance.code}
+                onClick={() => handleDistanceSelect(distance.code)}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "8px 10px",
+                  marginBottom: 4,
+                  textAlign: "left",
+                  cursor: "pointer",
+                  fontSize: 14,
+                  backgroundColor:
+                    selectedDistance === distance.code ? "#007bff" : "#f8f9fa",
+                  color: selectedDistance === distance.code ? "#fff" : "#000",
+                  fontWeight:
+                    selectedDistance === distance.code ? "bold" : "normal",
+                }}
+              >
+                {distance.name}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </>
   );

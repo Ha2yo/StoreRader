@@ -17,6 +17,8 @@ interface Store {
   y_coord: number | null;
   area_code: string;
   area_detail_code: string;
+  price?: number | null;
+  inspect_day?: string | null;
 }
 
 // StorePrice: 특정 상품의 매장별 가격 정보 구조체
@@ -30,12 +32,12 @@ function Map() {
   const mapRef = useRef<HTMLDivElement>(null); // 지도 DOM 참조
   const leafletMap = useRef<L.Map | null>(null); // Leaflet Map 인스턴스
   const markerRef = useRef<L.Marker | null>(null); // 사용자 위치 마커
-  const circleRef = useRef<L.Circle | null>(null); // 사용자 위치 반경 표시 (정확도)
+  const circleRef = useRef<L.Circle | null>(null); // 거리 반경 표시용 원
   const markersRef = useRef<Record<string, L.Marker>>({}); // 매장 카서 캐시
   const [selectedStore, setSelectedStore] = useState<Store | null>(null); // 선택된 매장 상태
   const [renderKey, setRenderKey] = useState(0); // 지도 리렌더링 트리거
 
-  // 로컬스토리지에 저장된 위치 불러오기 (사용자 위치)
+  // 사용자 위치 불러오기
   function loadSavedPosition() {
     const saved = localStorage.getItem("lastPosition");
     if (!saved) return null;
@@ -44,16 +46,45 @@ function Map() {
     return pos; // { lat, lng, accuracy }
   }
 
-  // 지역 변경 감지 (매장 필터링 기능_지역별)
+  // 사용자와 매장 간 거리 구하기 (하버사인 공식 활용)
+  function getDistance(
+    slat: number, slng: number, dlat: number, dlng: number) {
+    const radius = 6371;
+    const toRadian = Math.PI / 180;
+
+    const deltaLat = Math.abs(slat - dlat) * toRadian;
+    const deltaLng = Math.abs(slng - dlng) * toRadian;
+
+    const sinDeltaLat = Math.sin(deltaLat / 2);
+    const sinDeltaLng = Math.sin(deltaLng / 2);
+    const squareRoot = Math.sqrt(
+      sinDeltaLat * sinDeltaLat +
+      Math.cos(slat * toRadian) * Math.cos(dlat * toRadian) * sinDeltaLng * sinDeltaLng);
+
+    const distance = 2 * radius * Math.asin(squareRoot);
+
+    return distance;
+  }
+
+  // 지역 / 거리 변경 이벤트 감지
   useEffect(() => {
     const handleRegionChange = (e: any) => {
-      console.log("🔄 지역 변경 감지됨:", e.detail);
+      console.log(" 지역 변경 감지됨:", e.detail);
       setRenderKey((prev) => prev + 1);
     };
- 
- 
+
+    const handleDistanceChange = (e: any) => {
+      console.log("거리 변경 감지됨:", e.detail);
+      setRenderKey((prev) => prev + 1);
+    };
+
     window.addEventListener("regionChange", handleRegionChange);
-    return () => window.removeEventListener("regionChange", handleRegionChange);
+    window.addEventListener("distanceChange", handleDistanceChange);
+
+    return () => {
+      window.removeEventListener("regionChange", handleRegionChange);
+      window.removeEventListener("distanceChange", handleDistanceChange);
+    }
   }, []);
 
   // 마커 아이콘 정의 (파랑:사용자, 검정:기본 매장, 빨강:선택된 상품 판매 매장)
@@ -97,7 +128,7 @@ function Map() {
     const map = L.map(mapRef.current, { zoomControl: false });
     leafletMap.current = map;
 
-    // 기본 타일 레이어 추가
+    // 타일 레이어 추가
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
@@ -108,30 +139,65 @@ function Map() {
     if (pos) map.setView([pos.lat, pos.lng], 16);
   }, []);
 
-  // 지역 변경 시 매장 마커 갱신
+  // 매장 및 가격 데이터 갱신
   useEffect(() => {
     const map = leafletMap.current;
     if (!map) return;
 
     (async () => {
       try {
+        // 서버 주소 가져오기
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
-        
+
         // 전체 매장 목록 불러오기
- 
         const res = await fetch(`${apiURL}/getStoreInfo/all`);
         const stores: Store[] = await res.json();
 
-        // 선택된 지역 코드 가져오기
         const selectedRegion = localStorage.getItem("selectedRegionCode") || "020000000";
-        
-        // 지역 코드 일치 여부에 따라 필터링
-        const filteredStores =
-          selectedRegion === "020000000"
-            ? stores
-            : stores.filter((store) => store.area_code === selectedRegion);
+        const selectedDistance = localStorage.getItem("selectedDistance");
+        const pos = loadSavedPosition();
 
-        console.log(`선택된 지역: ${selectedRegion}, 매장 수: ${filteredStores.length}`);
+        let priceData: StorePrice[] = [];
+        let selectedGoodName = localStorage.getItem("selectedGoodName");
+        
+        // 선택된 상품이 있을 경우, 가격 정보 불러오기
+        if (selectedGoodName) {
+          const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
+          priceData = await priceRes.json();
+          console.log("불러온 가격 데이터:", priceData.length, "개");
+        }
+
+        let filteredStores = stores;
+
+        // 거리 필터
+        if (selectedDistance && pos) {
+          const maxDist = parseFloat(selectedDistance);
+
+          // 거리 내 매장만 필터링
+          filteredStores = stores.filter(
+            (s) =>
+              s.x_coord &&
+              s.y_coord &&
+              getDistance(pos.lat, pos.lng, s.x_coord, s.y_coord) <= maxDist
+          );
+          
+          // 기존 원 제거 후 새로 생성
+          if (circleRef.current) map.removeLayer(circleRef.current);
+          circleRef.current = L.circle([pos.lat, pos.lng], {
+            radius: maxDist * 1000, // km → m
+            color: "#3388ff",
+            fillColor: "#3388ff",
+            fillOpacity: 0.15,
+            weight: 2,
+          }).addTo(map);
+          console.log(`${maxDist}km 이내 매장 수: ${filteredStores.length}`);
+        } 
+        // 지역 필터
+        else if (selectedRegion !== "020000000") {
+          if (circleRef.current) map.removeLayer(circleRef.current);
+          filteredStores = stores.filter((s) => s.area_code === selectedRegion);
+          console.log(`지역 코드 ${selectedRegion} 매장 수: ${filteredStores.length}`);
+        }
 
         // 기존 마커 제거
         Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
@@ -140,22 +206,32 @@ function Map() {
         // 새 매장 마커 추가
         filteredStores.forEach((store) => {
           if (store.x_coord && store.y_coord) {
+            const match = priceData.find((p) => p.store_id === store.store_id);
+
             const marker = L.marker([store.x_coord, store.y_coord], { icon: blackIcon }).addTo(map);
-            marker.on("click", () => setSelectedStore(store));
+
+            // 클릭 시 매장 상세 패널 표시
+            marker.on("click", () =>
+              setSelectedStore({
+                ...store,
+                price: match ? match.price : null,
+                inspect_day: match ? match.inspect_day : null,
+              })
+            );
+
             markersRef.current[store.store_id] = marker;
           }
         });
 
-        // 선택된 상품 정보가 있을 경우, 가격 표시용 마커 갱신
-        const selectedGoodName = localStorage.getItem("selectedGoodName");
+        // 매장 마커 강조 (사용자가 입력한 물품이 있을 경우)
         if (selectedGoodName) {
-          // 선택한 상품에 대한 매장별 가격정보를 불러온다
           const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
           const priceData: StorePrice[] = await priceRes.json();
 
-          // 해당되는 상품이 없는 경우는, 매장 마커를 검정색으로 물들인다
+          // 모든 마커를 기본색(검정)으로 초기화
           Object.values(markersRef.current).forEach((m) => m.setIcon(blackIcon));
-          // 해당 상품 판매 매장은 빨간색으로 표시 + 마커 위에 가격을 표시한다
+          
+          // 해당 상품 판매 매장은 빨간색으로 표시 + 가격 툴팁 표시
           priceData.forEach((p) => {
             const marker = markersRef.current[p.store_id];
             if (marker) {
@@ -175,19 +251,16 @@ function Map() {
     })();
   }, [renderKey]); // 지역 변경 시 재실행
 
-  // 사용자 위치 마커 갱신 (5초 간격)
+  // 사용자 위치 마커 갱신
   useEffect(() => {
     const map = leafletMap.current!;
     const refreshMarker = () => {
       const pos = loadSavedPosition();
       if (!pos) return;
 
-      // 이전 마커 제거 후 새로 표시
+      // 기존 마커 제거 후 새로 표시
       if (markerRef.current) map.removeLayer(markerRef.current);
-      if (circleRef.current) map.removeLayer(circleRef.current);
-
       markerRef.current = L.marker([pos.lat, pos.lng], { icon: blueIcon }).addTo(map);
-      circleRef.current = L.circle([pos.lat, pos.lng], { radius: pos.accuracy }).addTo(map);
     };
 
     // 즉시 1회 실행 + 5초마다 반복
@@ -208,7 +281,7 @@ function Map() {
     <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
       {/* 지도 표시 영역 */}
       <div ref={mapRef} id="map" style={{ width: "100%", height: "100%" }} />
-      
+
       {/* 내 위치 이동 버튼 */}
       <button
         onClick={handleRecenter}
