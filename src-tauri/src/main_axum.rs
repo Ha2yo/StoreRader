@@ -59,22 +59,43 @@ async fn main() {
         .allow_origin(Any)
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(Any);
+
+    // "/auth..."
+    let auth_routes = Router::new()
+        // id token 검증 후 서버 자체 JWT 발급
+        .route("/auth/google", post(auth_google_handler));
+
+    // "/sync..."
+    let sync_routes = Router::new()
+        // 상품정보와 매장정보를 공공데이터 API에서 받아 DB에 저장
+        .route("/sync/goodsAndStores", get(upsert_api_data_handler))
+        // 지역별 코드를 공공데이터 API에서 받아 DB에 저장
+        .route("/sync/regionCodes", get(upsert_region_codes_handler))
+        // 매장별 가격정보를 공공데이터 API에서 받아 DB에 저장
+        .route("/sync/Prices", get(upsert_prices_handler));
+
+    // "/get..."
+    let get_routes = Router::new()
+        // DB에 저장된 모든 매장정보를 요청
+        .route("/get/StoreInfo/all", get(get_all_stores_handler))
+        // DB에 저장된 매장정보를 요청
+        .route("/get/StoreInfo", get(get_stores_by_good_id))
+        // DB에 저장된 모든 상품정보를 요청
+        .route("/get/GoodInfo/all", get(get_all_goods_handler))
+        // DB에 저장된 매장별 가격 정보를 요청 (유저가 입력한 상품명에 관한 가격 정보)
+        .route("/get/PriceInfo", get(get_prices_handler))
+        // DB에 저장된 모든 지역별 코드 정보를 요청
+        .route("/get/RegionCodeInfo/all", get(get_all_region_codes_handler));
     
-    // 라우터 구성
+    // 루트 라우터 설정
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
-        .route("/sync/goodsAndStores", get(upsert_api_data_handler))
-        .route("/sync/regionCodes", get(upsert_region_codes_handler))
-        .route("/sync/Prices", get(upsert_prices_handler))
-        .route("/auth/google", post(auth_google_handler))
-        .route("/getStoreInfo/all", get(get_all_stores_handler))
-        .route("/getStoreInfo", get(get_stores_by_good_id))
-        .route("/getGoodInfo/all", get(get_all_goods_handler))
-        .route("/getPriceInfo", get(get_prices_handler))
-        .route("/getRegionCodeInfo/all", get(get_all_region_codes_handler))
+        .merge(sync_routes)
+        .merge(auth_routes)
+        .merge(get_routes)
         .layer(cors)
         .with_state(pool.clone());
-
+    
     // 서버 실행
     tracing::info!("서버가 http://localhost:3000에서 시작되었습니다");
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

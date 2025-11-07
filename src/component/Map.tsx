@@ -150,7 +150,7 @@ function Map() {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
 
         // 전체 매장 목록 불러오기
-        const res = await fetch(`${apiURL}/getStoreInfo/all`);
+        const res = await fetch(`${apiURL}/get/StoreInfo/all`);
         const stores: Store[] = await res.json();
 
         const selectedRegion = localStorage.getItem("selectedRegionCode") || "020000000";
@@ -162,7 +162,7 @@ function Map() {
         
         // 선택된 상품이 있을 경우, 가격 정보 불러오기
         if (selectedGoodName) {
-          const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
+          const priceRes = await fetch(`${apiURL}/get/PriceInfo?good_name=${selectedGoodName}`);
           priceData = await priceRes.json();
           console.log("불러온 가격 데이터:", priceData.length, "개");
         }
@@ -225,7 +225,7 @@ function Map() {
 
         // 매장 마커 강조 (사용자가 입력한 물품이 있을 경우)
         if (selectedGoodName) {
-          const priceRes = await fetch(`${apiURL}/getPriceInfo?good_name=${selectedGoodName}`);
+          const priceRes = await fetch(`${apiURL}/get/PriceInfo?good_name=${selectedGoodName}`);
           const priceData: StorePrice[] = await priceRes.json();
 
           // 모든 마커를 기본색(검정)으로 초기화

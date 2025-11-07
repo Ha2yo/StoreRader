@@ -44,6 +44,7 @@ pub async fn get_all_stores(pool: &PgPool) -> Result<Vec<StoreEntity>, String> {
         ("
         SELECT * FROM stores
         WHERE x_coord IS NOT NULL AND y_coord IS NOT NULL
+            ORDER BY store_id::bigint ASC
         ")
     .fetch_all(pool)
     .await
@@ -53,7 +54,8 @@ pub async fn get_all_stores(pool: &PgPool) -> Result<Vec<StoreEntity>, String> {
 }
 
 pub async fn get_all_stores_id(pool: &PgPool) -> Result<Vec<String>, String> {
-    let ids = sqlx::query!("SELECT store_id FROM stores")
+    let ids = sqlx::query!("SELECT store_id FROM stores
+                                            ORDER BY store_id::bigint ASC")
         .fetch_all(pool)
         .await
         .map_err(|e| format!("DB 조회 실패: {}", e))?
