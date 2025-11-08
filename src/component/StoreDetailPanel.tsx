@@ -54,6 +54,7 @@ function StoreDetailPanel({ store, onClose }: Props) {
         return distance;
     }
 
+    // 검색기록 DB에 저장하기
     async function updateHistory(store: Store) {
         const token = localStorage.getItem("jwt");
         console.log(token);
@@ -66,22 +67,22 @@ function StoreDetailPanel({ store, onClose }: Props) {
             const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
             const goodName = localStorage.getItem("selectedGoodName");
 
-            console.log("d", goodName);
-
-            await fetch(`${apiURL}/history/save`, {
+            const res = await fetch(`${apiURL}/get/userPreferenceInfo`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({
-                    store_id: store.store_id,
-                    store_name: store.store_name,
-                    good_name: goodName,
-                    visited_at: new Date().toISOString(),
-                }),
+                body: JSON.stringify({}),
             });
-            console.log("길찾기 기록 저장 완료:", store.store_name);
+
+            if (!res.ok) {
+                const text = await res.text(); // 에러 메시지 읽기
+                throw new Error(`요청 실패 (${res.status}): ${text}`);
+            }
+
+            const data = await res.json();
+            console.log("사용자 선호도:", JSON.stringify(data, null, 2));
         }
         catch (err) {
             console.error("길찾기 기록 저장 실패:", err);

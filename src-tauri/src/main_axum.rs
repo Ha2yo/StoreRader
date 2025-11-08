@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::{get_all_stores_handler, get_stores_by_good_id}, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::{get_all_stores_handler}, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
     },
 };
 
@@ -78,15 +78,14 @@ async fn main() {
     let get_routes = Router::new()
         // DB에 저장된 모든 매장정보를 요청
         .route("/get/StoreInfo/all", get(get_all_stores_handler))
-        // DB에 저장된 매장정보를 요청
-        .route("/get/StoreInfo", get(get_stores_by_good_id))
         // DB에 저장된 모든 상품정보를 요청
         .route("/get/GoodInfo/all", get(get_all_goods_handler))
         // DB에 저장된 매장별 가격 정보를 요청 (유저가 입력한 상품명에 관한 가격 정보)
         .route("/get/PriceInfo", get(get_prices_handler))
         // DB에 저장된 모든 지역별 코드 정보를 요청
-        .route("/get/RegionCodeInfo/all", get(get_all_region_codes_handler));
-    
+        .route("/get/RegionCodeInfo/all", get(get_all_region_codes_handler))
+        // DB에 저장된 유저별 선호도 정보를 요청
+        .route("/get/userPreferenceInfo", post(get_user_preference_handler));
     // 루트 라우터 설정
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
