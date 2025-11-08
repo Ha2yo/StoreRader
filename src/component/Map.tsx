@@ -3,8 +3,9 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { invoke } from "@tauri-apps/api/core";
 import StoreDetailPanel from "./StoreDetailPanel";
+import { usePreference } from "../contexts/PreferenceContext";
 
-// Store: 매장 기본 정보 구조체
+// 매장 기본 정보
 interface Store {
   id: number;
   store_id: string;
@@ -21,7 +22,7 @@ interface Store {
   inspect_day?: string | null;
 }
 
-// StorePrice: 특정 상품의 매장별 가격 정보 구조체
+// 특정 상품의 매장별 가격 정보
 interface StorePrice {
   store_id: string;
   price: number;
@@ -33,11 +34,16 @@ function Map() {
   const leafletMap = useRef<L.Map | null>(null); // Leaflet Map 인스턴스
   const markerRef = useRef<L.Marker | null>(null); // 사용자 위치 마커
   const circleRef = useRef<L.Circle | null>(null); // 거리 반경 표시용 원
-  const markersRef = useRef<Record<string, L.Marker>>({}); // 매장 카서 캐시
+  const markersRef = useRef<Record<string, L.Marker>>({}); // 매장 마커 캐시
+
   const [selectedStore, setSelectedStore] = useState<Store | null>(null); // 선택된 매장 상태
   const [renderKey, setRenderKey] = useState(0); // 지도 리렌더링 트리거
 
-  // 사용자 위치 불러오기
+  const { preference } = usePreference(); // 사용자 선호도
+  const w_price = preference.w_price; // 가격 가중치
+  const w_distance = preference.w_distance; // 거리 가중치
+
+  // 저장된 사용자 위치 로드
   function loadSavedPosition() {
     const saved = localStorage.getItem("lastPosition");
     if (!saved) return null;
@@ -47,9 +53,10 @@ function Map() {
   }
 
   // 사용자와 매장 간 거리 구하기 (하버사인 공식 활용)
+  // 위, 경도 입력 -> km 단위 실수 반환
   function getDistance(
     slat: number, slng: number, dlat: number, dlng: number) {
-    const radius = 6371;
+    const radius = 6371; // 지구 반경 (km)
     const toRadian = Math.PI / 180;
 
     const deltaLat = Math.abs(slat - dlat) * toRadian;
@@ -66,7 +73,22 @@ function Map() {
     return distance;
   }
 
-  // 지역 / 거리 변경 이벤트 감지
+  // 추천 점수 계산 (낮을수록 효율적)
+  function calcEfficiency(
+    price: number,
+    distance: number,
+    maxPrice: number,
+    maxDistance: number,
+    w_price: number,
+    w_distance: number
+  ): number {
+    const priceRatio = price / maxPrice;
+    const distanceRatio = distance / maxDistance;
+
+    return w_price * priceRatio + w_distance * distanceRatio;
+  }
+
+  // 매장 필터 이벤트 수신 -> renderKey 증가
   useEffect(() => {
     const handleRegionChange = (e: any) => {
       console.log(" 지역 변경 감지됨:", e.detail);
@@ -87,7 +109,11 @@ function Map() {
     }
   }, []);
 
-  // 마커 아이콘 정의 (파랑:사용자, 검정:기본 매장, 빨강:선택된 상품 판매 매장)
+  // 마커 아이콘 정의
+  // - 파랑: 사용자 위치
+  // - 빨강: 추천 1위 매장
+  // - 주황: 추천 2~5위 매장
+  // - 검정: 일반 매장
   const blueIcon = L.icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
@@ -102,6 +128,17 @@ function Map() {
   const redIcon = L.icon({
     iconUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+    shadowUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
+  });
+
+  const orangeIcon = L.icon({
+    iconUrl:
+      "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
     shadowUrl:
       "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-shadow.png",
     iconSize: [25, 41],
@@ -140,6 +177,7 @@ function Map() {
   }, []);
 
   // 매장 및 가격 데이터 갱신
+  // renderkey가 바뀔 때마다 실행
   useEffect(() => {
     const map = leafletMap.current;
     if (!map) return;
@@ -149,39 +187,39 @@ function Map() {
         // 서버 주소 가져오기
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
 
-        // 전체 매장 목록 불러오기
+        // 전체 매장 목록 조회
         const res = await fetch(`${apiURL}/get/StoreInfo/all`);
         const stores: Store[] = await res.json();
 
         const selectedRegion = localStorage.getItem("selectedRegionCode") || "020000000";
         const selectedDistance = localStorage.getItem("selectedDistance");
-        const pos = loadSavedPosition();
+        const selectedGoodName = localStorage.getItem("selectedGoodName");
+
+        const pos = loadSavedPosition(); // 사용자 위치
 
         let priceData: StorePrice[] = [];
-        let selectedGoodName = localStorage.getItem("selectedGoodName");
-        
-        // 선택된 상품이 있을 경우, 가격 정보 불러오기
+
+        // 선택된 상품이 있다면 가격 데이터 획득
         if (selectedGoodName) {
           const priceRes = await fetch(`${apiURL}/get/PriceInfo?good_name=${selectedGoodName}`);
           priceData = await priceRes.json();
           console.log("불러온 가격 데이터:", priceData.length, "개");
+
         }
 
+        // 매장 필터링
         let filteredStores = stores;
 
-        // 거리 필터
-        if (selectedDistance && pos) {
+        // 거리 필터가 있으면 거리 기준 우선 필터링
+        if (selectedDistance) {
           const maxDist = parseFloat(selectedDistance);
 
-          // 거리 내 매장만 필터링
+          // 사용자 위치가 있을 때만 거리 판단
           filteredStores = stores.filter(
-            (s) =>
-              s.x_coord &&
-              s.y_coord &&
-              getDistance(pos.lat, pos.lng, s.x_coord, s.y_coord) <= maxDist
+            (s) => getDistance(pos.lat, pos.lng, s.x_coord!, s.y_coord!) <= maxDist
           );
-          
-          // 기존 원 제거 후 새로 생성
+
+          // 기존 원 제거 후 새 반경 원 추가
           if (circleRef.current) map.removeLayer(circleRef.current);
           circleRef.current = L.circle([pos.lat, pos.lng], {
             radius: maxDist * 1000, // km → m
@@ -191,60 +229,95 @@ function Map() {
             weight: 2,
           }).addTo(map);
           console.log(`${maxDist}km 이내 매장 수: ${filteredStores.length}`);
-        } 
-        // 지역 필터
+        }
+        // 거리 필터가 없고, 지역 필터가 '전체'가 아니라면 지역 코드 필터
         else if (selectedRegion !== "020000000") {
           if (circleRef.current) map.removeLayer(circleRef.current);
           filteredStores = stores.filter((s) => s.area_code === selectedRegion);
           console.log(`지역 코드 ${selectedRegion} 매장 수: ${filteredStores.length}`);
         }
 
-        // 기존 마커 제거
+        // 기존 마커들 전부 제거
         Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
         markersRef.current = {};
 
-        // 새 매장 마커 추가
-        filteredStores.forEach((store) => {
-          if (store.x_coord && store.y_coord) {
-            const match = priceData.find((p) => p.store_id === store.store_id);
+        // 상품이 선택된 경우: 추천 시스템만 실행
+        if (selectedGoodName && priceData.length > 0) {
 
-            const marker = L.marker([store.x_coord, store.y_coord], { icon: blackIcon }).addTo(map);
+          // 가격 데이터가 있는 매장을 대상으로 한다
+          const validStores = filteredStores.filter((s) =>
+            priceData.some((p) => p.store_id === s.store_id)
+          );
 
-            // 클릭 시 매장 상세 패널 표시
-            marker.on("click", () =>
-              setSelectedStore({
-                ...store,
-                price: match ? match.price : null,
-                inspect_day: match ? match.inspect_day : null,
-              })
-            );
+          if (validStores.length === 0) return;
 
-            markersRef.current[store.store_id] = marker;
-          }
-        });
+          // 정규화 기준값: max 가격 / 거리
+          const maxPrice = Math.max(...priceData.map((p) => p.price));
+          const distances = validStores.map((s) =>
+            getDistance(pos.lat, pos.lng, s.x_coord!, s.y_coord!)
+          );
+          const maxDistance = distances.length > 0 ? Math.max(...distances) : 1;
 
-        // 매장 마커 강조 (사용자가 입력한 물품이 있을 경우)
-        if (selectedGoodName) {
-          const priceRes = await fetch(`${apiURL}/get/PriceInfo?good_name=${selectedGoodName}`);
-          const priceData: StorePrice[] = await priceRes.json();
+          // 각 매장에 대해 점수 계산
+          const scored = validStores.map((store) => {
+            const price = priceData.find((p) => p.store_id === store.store_id)?.price ?? maxPrice;
+            const distance = getDistance(pos.lat, pos.lng, store.x_coord!, store.y_coord!);
+            const score = calcEfficiency(price, distance, maxPrice, maxDistance, w_price, w_distance);
+            return { ...store, price, distance, score };
+          });
 
-          // 모든 마커를 기본색(검정)으로 초기화
-          Object.values(markersRef.current).forEach((m) => m.setIcon(blackIcon));
-          
-          // 해당 상품 판매 매장은 빨간색으로 표시 + 가격 툴팁 표시
-          priceData.forEach((p) => {
-            const marker = markersRef.current[p.store_id];
-            if (marker) {
-              marker.setIcon(redIcon);
-              marker.bindTooltip(`₩${p.price.toLocaleString()}`, {
+          // 점수가 낮은 순(효율 높은 순)으로 정렬
+          scored.sort((a, b) => a.score - b.score);
+
+          // 마커 생성
+          scored.forEach((store, idx) => {
+            // 순위별 아이콘
+            let icon = blackIcon;
+            if (idx === 0) icon = redIcon;        // 1위
+            else if (idx < 5) icon = orangeIcon;  // 2~5위
+
+            const marker = L.marker([store.x_coord!, store.y_coord!], { icon }).addTo(map);
+
+            // 가격 툴팁 (항상 표시)
+            marker.bindTooltip(
+              `₩${store.price.toLocaleString()}`,
+              {
                 permanent: true,
                 direction: "top",
-                offset: L.point(0, -10),
+                offset: L.point(0, -40),
                 className: "price-tooltip",
-              }).openTooltip();
+              }
+            ).openTooltip();
+
+            // 팝업 (상위 5개는 상세, 6등부터는 순위만)
+            if (idx < 5) {
+              marker.bindPopup(`
+      <b>추천 매장 (${idx + 1}위)</b><br/>
+      ₩${store.price.toLocaleString()}<br/>
+      ${store.distance.toFixed(2)} km<br/>
+      효율 점수: ${store.score.toFixed(3)}
+    `);
+            } else {
+              marker.bindPopup(`<b>${idx + 1}위 추천 매장</b>`);
             }
+            markersRef.current[store.store_id] = marker;
+
+            // 클릭 시 상세 패널 열기
+            marker.on("click", () => setSelectedStore(store));
           });
         }
+        // 일반 모드
+        else {
+          filteredStores.forEach((store) => {
+
+            const marker = L.marker([store.x_coord!, store.y_coord!], { icon: blackIcon }).addTo(map);
+            // 클릭 시 상세 패널 열기
+            marker.on("click", () => setSelectedStore(store));
+            markersRef.current[store.store_id] = marker;
+
+          });
+        }
+
       } catch (err) {
         console.error("매장 데이터 불러오기 실패:", err);
       }

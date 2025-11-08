@@ -1,7 +1,7 @@
 use axum::{Json, extract::State, http::{HeaderMap, status::StatusCode}};
 use sqlx::PgPool;
 
-use crate::domain::preference::{dto::{dto_req::PreferenceReq, dto_res::PreferenceRes}, service::get_user_preference};
+use crate::domain::preference::{dto::dto_res::PreferenceRes, service::get_user_preference};
 
 pub async fn get_user_preference_handler(
     State(pool): State<PgPool>,

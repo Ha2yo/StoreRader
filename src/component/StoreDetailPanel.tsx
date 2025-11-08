@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { openUrl } from '@tauri-apps/plugin-opener'
-import { invoke } from "@tauri-apps/api/core";
 
 // 매장 정보 인터페이스 
 interface Store {
@@ -52,41 +51,6 @@ function StoreDetailPanel({ store, onClose }: Props) {
         const distance = 2 * radius * Math.asin(squareRoot);
 
         return distance;
-    }
-
-    // 검색기록 DB에 저장하기
-    async function updateHistory(store: Store) {
-        const token = localStorage.getItem("jwt");
-        console.log(token);
-        if (!token) {
-            console.log("비로그인 사용자: 길찾기 기록 생략");
-            return;
-        }
-
-        try {
-            const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
-            const goodName = localStorage.getItem("selectedGoodName");
-
-            const res = await fetch(`${apiURL}/get/userPreferenceInfo`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({}),
-            });
-
-            if (!res.ok) {
-                const text = await res.text(); // 에러 메시지 읽기
-                throw new Error(`요청 실패 (${res.status}): ${text}`);
-            }
-
-            const data = await res.json();
-            console.log("사용자 선호도:", JSON.stringify(data, null, 2));
-        }
-        catch (err) {
-            console.error("길찾기 기록 저장 실패:", err);
-        }
     }
 
     // 사용자 위치 얻기
@@ -214,7 +178,6 @@ function StoreDetailPanel({ store, onClose }: Props) {
                                     const dlat = store.x_coord;
                                     const dlng = store.y_coord;
                                     const dname = encodeURIComponent(store.store_name);
-                                    await updateHistory(store);
                                     const naverMApUrl = `nmap://route/public?slat=${slat}&slng=${slng}&sname=${sname}&dlat=${dlat}&dlng=${dlng}&dname=${dname}&appname=com.ik9014.storerader`
                                     await openUrl(naverMApUrl)
                                 }
@@ -243,7 +206,6 @@ function StoreDetailPanel({ store, onClose }: Props) {
                                     const dlat = store.x_coord;
                                     const dlng = store.y_coord;
                                     const dname = encodeURIComponent(store.store_name);
-                                    await updateHistory(store);
                                     const kakaoMapUrl = `https://map.kakao.com/link/from/${sname},${slat},${slng}/to/${dname},${dlat},${dlng}`;
                                     await openUrl(kakaoMapUrl)
                                 }
