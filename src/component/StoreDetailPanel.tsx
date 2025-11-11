@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { openUrl } from '@tauri-apps/plugin-opener'
+import { invoke } from "@tauri-apps/api/core";
 
 // 매장 정보 인터페이스 
 interface Store {
@@ -13,15 +14,18 @@ interface Store {
     x_coord: number | null;
     y_coord: number | null;
     price?: number | null;
+    distance?: number | null;
     inspect_day?: string | null;
 }
 
 interface Props {
     store: Store;
+    candidates: Store[];
+    goodId: string | null;
     onClose: () => void;
 }
 
-function StoreDetailPanel({ store, onClose }: Props) {
+function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
 
     // 전역 위치 정보 (사용자 현재 위치)
@@ -51,6 +55,67 @@ function StoreDetailPanel({ store, onClose }: Props) {
         const distance = 2 * radius * Math.asin(squareRoot);
 
         return distance;
+    }
+
+    function determinePreferenceType(selected: Store, candidates: Store[]) {
+        if (!candidates || candidates.length === 0) return "neutral";
+        if (!selected.price || !selected.distance) return "neutral";
+
+        // 후보 평균 계산
+        const avgPrice = candidates.reduce((sum, s) => sum + (s.price ?? 0), 0) / candidates.length;
+        const avgDist = candidates.reduce((sum, s) => sum + (s.distance ?? 0), 0) / candidates.length;
+
+        // 상대 비율 차이 계산
+        const priceFocus = (avgPrice - selected.price) / avgPrice;      // 양수면 평균보다 저렴 → 가격 중심
+        const distanceFocus = (avgDist - selected.distance) / avgDist;  // 양수면 평균보다 가까움 → 거리 중심
+
+        // 판단 기준 (10% 이상 차이 시 의미 있는 차이로 간주)
+        const threshold = 0.1;
+        const tolerance = 0.05; // 보조 구간
+
+        if (priceFocus > threshold && distanceFocus < tolerance) {
+            return "price"; // 가격 중심
+        } else if (distanceFocus > threshold && priceFocus < tolerance) {
+            return "distance"; // 거리 중심
+        } else {
+            return "neutral"; // 중립적 선택
+        }
+    }
+
+    async function logUserSelection(store: Store, goodId: string | null, preferenceType: String) {
+        try {
+            const jwt = localStorage.getItem("jwt");
+            if (!jwt) {
+                console.warn("JWT 없음 -> 비로그인 사용자");
+                return;
+            }
+
+            const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
+
+            const payload = {
+                store_id: store.store_id,
+                good_id: goodId,
+                preference_type: preferenceType,
+            };
+            console.log("서버 전송 데이터:", payload);
+
+            const res = await fetch(`${apiURL}/update/userSelectionLog`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${jwt}`,
+                },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("로그 저장 실패:", text);
+            } else {
+                console.log("로그 저장 완료");
+            }
+        } catch (err) {
+            console.error("로그 저장 중 오류:", err);
+        }
     }
 
     // 사용자 위치 얻기
@@ -179,7 +244,10 @@ function StoreDetailPanel({ store, onClose }: Props) {
                                     const dlng = store.y_coord;
                                     const dname = encodeURIComponent(store.store_name);
                                     const naverMApUrl = `nmap://route/public?slat=${slat}&slng=${slng}&sname=${sname}&dlat=${dlat}&dlng=${dlng}&dname=${dname}&appname=com.ik9014.storerader`
-                                    await openUrl(naverMApUrl)
+                                    await openUrl(naverMApUrl);
+
+                                    const preferenceType = determinePreferenceType(store, candidates);
+                                    await logUserSelection(store, goodId, preferenceType);
                                 }
                             }}
                         >

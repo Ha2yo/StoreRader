@@ -5,3 +5,4 @@ pub mod good;
 pub mod price;
 pub mod region;
 pub mod preference;
+pub mod log;

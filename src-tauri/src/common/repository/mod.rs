@@ -4,4 +4,5 @@ pub mod repository_good;
 pub mod repository_price;
 pub mod repository_join;
 pub mod repository_region;
-pub mod repository_preference;
+pub mod repository_user_preference;
+pub mod repository_user_selection_log;

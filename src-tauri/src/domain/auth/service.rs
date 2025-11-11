@@ -47,7 +47,7 @@ use jsonwebtoken::{
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 
-use crate::{common::repository::{repository_preference::create_default_preference, repository_user::find_and_create_user}, config::env::get_env_value, domain::auth::dto::{dto_req::GoogleLoginReq, dto_res::{GoogleLoginRes, UserRes}}};
+use crate::{common::repository::{repository_user_preference::create_default_preference, repository_user::find_and_create_user}, config::env::get_env_value, domain::auth::dto::{dto_req::GoogleLoginReq, dto_res::{GoogleLoginRes, UserRes}}};
 
 
 // Google ID Token Claims 구조체
@@ -108,6 +108,7 @@ pub async fn auth_google(
     // DB 조회/생성
     let user = find_and_create_user(&pool, &claims.sub, &claims.email, &claims.name).await?;
     create_default_preference(&pool, user.id).await?;
+    
     // JWT 발급
     let jwt = create_jwt(user.id.to_string(), user.email.clone())
         .map_err(|e| format!("JWT 생성 실패: {e}"))?;

@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::{get_all_stores_handler}, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, log::handler::{update_user_selection_log_handler}, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::get_all_stores_handler, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
     },
 };
 
@@ -86,12 +86,16 @@ async fn main() {
         .route("/get/RegionCodeInfo/all", get(get_all_region_codes_handler))
         // DB에 저장된 유저별 선호도 정보를 요청
         .route("/get/userPreferenceInfo", post(get_user_preference_handler));
+    let update_routes = Router::new()
+        .route("/update/userSelectionLog", post(update_user_selection_log_handler));
+    
     // 루트 라우터 설정
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
         .merge(sync_routes)
         .merge(auth_routes)
         .merge(get_routes)
+        .merge(update_routes)
         .layer(cors)
         .with_state(pool.clone());
     

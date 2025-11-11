@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use crate::{common::{entity::entity_preference::PreferenceEntity, repository::repository_preference::get_preference_by_user_id}, domain::auth::service::decode_jwt};
+use crate::{common::{entity::entity_preference::PreferenceEntity, repository::repository_user_preference::get_preference_by_user_id}, domain::auth::service::decode_jwt};
 
 pub async fn get_user_preference(pool: &PgPool, token: &str) -> Result<PreferenceEntity, String> {
      // JWT 검증

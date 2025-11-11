@@ -37,11 +37,16 @@ function Map() {
   const markersRef = useRef<Record<string, L.Marker>>({}); // 매장 마커 캐시
 
   const [selectedStore, setSelectedStore] = useState<Store | null>(null); // 선택된 매장 상태
+
   const [renderKey, setRenderKey] = useState(0); // 지도 리렌더링 트리거
 
   const { preference } = usePreference(); // 사용자 선호도
   const w_price = preference.w_price; // 가격 가중치
   const w_distance = preference.w_distance; // 거리 가중치
+
+  const [scoredStores, setScoredStores] = useState<Store[]>([]);
+
+  const selectedGoodId = localStorage.getItem("selectedGoodId");
 
   // 저장된 사용자 위치 로드
   function loadSavedPosition() {
@@ -260,11 +265,16 @@ function Map() {
 
           // 각 매장에 대해 점수 계산
           const scored = validStores.map((store) => {
-            const price = priceData.find((p) => p.store_id === store.store_id)?.price ?? maxPrice;
+            const matched = priceData.find((p) => p.store_id === store.store_id); // ✅ priceData에서 매칭
+            const price = matched?.price ?? maxPrice;
+            const inspect_day = matched?.inspect_day ?? null;
             const distance = getDistance(pos.lat, pos.lng, store.x_coord!, store.y_coord!);
             const score = calcEfficiency(price, distance, maxPrice, maxDistance, w_price, w_distance);
-            return { ...store, price, distance, score };
+            return { ...store, price, distance, inspect_day, score };
           });
+          scored.sort((a, b) => a.score - b.score);
+
+          setScoredStores(scored);
 
           // 점수가 낮은 순(효율 높은 순)으로 정렬
           scored.sort((a, b) => a.score - b.score);
@@ -382,7 +392,11 @@ function Map() {
 
       {/* 매장 상세 정보 패널 */}
       {selectedStore && (
-        <StoreDetailPanel store={selectedStore} onClose={() => setSelectedStore(null)} />
+        <StoreDetailPanel
+          store={selectedStore}
+          goodId={selectedGoodId}
+          candidates={scoredStores}
+          onClose={() => setSelectedStore(null)} />
       )}
     </div>
   );

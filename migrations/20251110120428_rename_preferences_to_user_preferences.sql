@@ -1,0 +1,1 @@
+ALTER TABLE preferences RENAME To user_preferences;

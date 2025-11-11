@@ -33,6 +33,7 @@ function Search() {
     if (searchTerm.trim() === "") {
       localStorage.removeItem("lastSearchTerm");
       localStorage.removeItem("selectedGoodName");
+      localStorage.removeItem("selectedGoodId")
     } else {
       localStorage.setItem("lastSearchTerm", searchTerm);
     }
@@ -90,7 +91,7 @@ function Search() {
       />
 
       <ul style={{ listStyle: "none", padding: 0, maxHeight: "70vh", overflowY: "auto" }}>
-        {filteredGoods.slice(0, 10).map((g, index) => (
+        {filteredGoods.map((g, index) => (
           <li
             key={index}
             style={{
@@ -101,6 +102,7 @@ function Search() {
             onClick={() => {
               setSearchTerm(g.good_name);
               localStorage.setItem("selectedGoodName", g.good_name);
+              localStorage.setItem("selectedGoodId", g.good_id);
               navigate("/map");
             }}
           >
