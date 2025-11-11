@@ -1,4 +1,4 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, prelude::FromRow};
 
 use crate::domain::log::dto::dto_req::UserSelectionLogReq;
 
@@ -20,4 +20,26 @@ pub async fn insert_user_selection_log(
     .map_err(|e| format!("신규 유저 생성 실패: {}", e))?;
 
     Ok(())
+}
+
+#[derive(Debug, FromRow)]
+pub struct LogRow {
+    pub preference_type: String,
+}
+
+pub async fn get_recent_10_logs(pool: &PgPool, user_id: i32) -> Result<Vec<LogRow>, sqlx::Error> {
+    let rows = sqlx::query_as!(
+        LogRow,
+        r#"
+        SELECT preference_type
+        FROM user_selection_log
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        LIMIT 10
+        "#,
+        user_id
+    )
+    .fetch_all(pool)
+    .await?;
+    Ok(rows)
 }

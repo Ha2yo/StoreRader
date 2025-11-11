@@ -275,7 +275,10 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                                     const dlng = store.y_coord;
                                     const dname = encodeURIComponent(store.store_name);
                                     const kakaoMapUrl = `https://map.kakao.com/link/from/${sname},${slat},${slng}/to/${dname},${dlat},${dlng}`;
-                                    await openUrl(kakaoMapUrl)
+                                    await openUrl(kakaoMapUrl);
+
+                                    const preferenceType = determinePreferenceType(store, candidates);
+                                    await logUserSelection(store, goodId, preferenceType);
                                 }
                             }}
                         >

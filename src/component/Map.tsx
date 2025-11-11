@@ -274,6 +274,14 @@ function Map() {
           });
           scored.sort((a, b) => a.score - b.score);
 
+          if (scored.length > 0) {
+            const top = scored[0];
+            map.flyTo([top.x_coord!, top.y_coord!], 16, {
+              animate: true,
+              duration: 1.5,
+            });
+          }
+
           setScoredStores(scored);
 
           // 점수가 낮은 순(효율 높은 순)으로 정렬
@@ -301,12 +309,27 @@ function Map() {
 
             // 팝업 (상위 5개는 상세, 6등부터는 순위만)
             if (idx < 5) {
+              if (idx === 0) {
+                marker.bindTooltip(`
+                  <b>추천 매장 (${idx + 1}위)</b><br/>
+                  ₩${store.price.toLocaleString()}<br/>
+                  ${store.distance.toFixed(2)} km<br/>
+                  효율 점수: ${store.score.toFixed(3)}`,
+                  {
+                    permanent: true,
+                    direction: "top",
+                    offset: L.point(0, -40),
+                    className: "price-tooltip top-store",
+                  }
+                ).openTooltip();
+                
+              } else
               marker.bindPopup(`
-      <b>추천 매장 (${idx + 1}위)</b><br/>
-      ₩${store.price.toLocaleString()}<br/>
-      ${store.distance.toFixed(2)} km<br/>
-      효율 점수: ${store.score.toFixed(3)}
-    `);
+                <b>추천 매장 (${idx + 1}위)</b><br/>
+                ₩${store.price.toLocaleString()}<br/>
+                ${store.distance.toFixed(2)} km<br/>
+                효율 점수: ${store.score.toFixed(3)}
+              `);
             } else {
               marker.bindPopup(`<b>${idx + 1}위 추천 매장</b>`);
             }
