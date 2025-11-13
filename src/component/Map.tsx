@@ -47,6 +47,8 @@ function Map() {
   const [scoredStores, setScoredStores] = useState<Store[]>([]);
 
   const selectedGoodId = localStorage.getItem("selectedGoodId");
+  const historyFlag = localStorage.getItem("historyFlag");
+  const historyStoreId = localStorage.getItem("historyStoreId");
 
   // 저장된 사용자 위치 로드
   function loadSavedPosition() {
@@ -246,8 +248,43 @@ function Map() {
         Object.values(markersRef.current).forEach((m) => map.removeLayer(m));
         markersRef.current = {};
 
+
+        // 사용자가 매장 히스토리를 클릭했을 경우
+        if (historyFlag === "1" && historyStoreId) {
+          const target = stores.find((s) => s.store_id === historyStoreId);
+
+          if (target) {
+            // 기존 마커 초기화
+            Object.values(markersRef.current).forEach(m => map.removeLayer(m));
+            markersRef.current = {};
+
+            // 해당 매장을 빨간 마커로 찍기
+            const marker = L.marker([target.x_coord!, target.y_coord!], { icon: redIcon }).addTo(map);
+            markersRef.current[target.store_id] = marker;
+
+            // 상세 패널 열기
+            marker.on("click", () => setSelectedStore(target));
+
+            map.flyTo([target.x_coord!, target.y_coord!], 16, {
+              animate: true,
+              duration: 1.2,
+            });
+
+            // 히스토리 모드 한 번만 실행하도록 제거
+            localStorage.setItem("historyFlag", "0");
+            localStorage.removeItem("historyStoreId");
+            localStorage.removeItem("historyGoodId");
+            localStorage.removeItem("historyGoodName");
+
+            setSelectedStore(target);
+
+            return;
+          }
+        }
+
+
         // 상품이 선택된 경우: 추천 시스템만 실행
-        if (selectedGoodName && priceData.length > 0) {
+        if (selectedGoodName && priceData.length > 0 && historyFlag == "0") {
 
           // 가격 데이터가 있는 매장을 대상으로 한다
           const validStores = filteredStores.filter((s) =>
@@ -322,9 +359,9 @@ function Map() {
                     className: "price-tooltip top-store",
                   }
                 ).openTooltip();
-                
+
               } else
-              marker.bindPopup(`
+                marker.bindPopup(`
                 <b>추천 매장 (${idx + 1}위)</b><br/>
                 ₩${store.price.toLocaleString()}<br/>
                 ${store.distance.toFixed(2)} km<br/>

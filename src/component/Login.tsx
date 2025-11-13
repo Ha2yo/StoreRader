@@ -14,10 +14,27 @@
 import { signIn, signOut } from '@choochmeque/tauri-plugin-google-auth-api';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuth } from '../contexts/AuthContext';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+interface UserHistoryItem {
+  id: number;
+  store_id: string;
+  store_name: string;
+  good_id: number;
+  good_name: string;
+  price: number;
+  current_price: number;
+  x_coord: number | null;
+  y_coord: number | null;
+  created_at: string;
+}
 
 function Login() {
   const { user, login, logout } = useAuth(); // 전역 Auth 사용
+  const [history, setHistory] = useState<UserHistoryItem[]>([]);
 
+  const navigate = useNavigate();
   // handleLogin()
   // 기능: Google 로그인 처리
   async function handleLogin() {
@@ -82,10 +99,35 @@ function Login() {
   }
 
 
+  async function userHistory() {
+    const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
+    const jwt = localStorage.getItem("jwt");
+
+    const res = await fetch(`${apiURL}/get/userSelectionLogInfo`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    console.log("STATUS =", res.status);
+
+    const text = await res.text();
+    console.log("BODY =", text);
+
+    if (!res.ok) {
+      alert("히스토리 불러오기 실패");
+      return;
+    }
+
+    const data: UserHistoryItem[] = JSON.parse(text);
+    setHistory(data);
+  }
+
   // UI 구성
   return (
     <div className='container'>
-      <h1>My Page</h1>
+      <h1>My Info</h1>
       <br />
       {!user ? (
         <button onClick={handleLogin}>로그인</button>
@@ -94,7 +136,105 @@ function Login() {
           <p>{user.email}</p>
           <p>환영합니다</p>
           <button onClick={handleLogout}>로그아웃</button>
+          <button onClick={userHistory}>기록 보기</button>
+
         </div>
+      )}
+
+
+      {history.length > 0 && (
+        <ul
+          style={{
+            marginTop: "15px",
+            paddingLeft: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            paddingBottom: "80px",
+          }}
+        >
+          {history.map((item) => (
+            <li
+              key={item.id}
+              style={{
+                width: "90%",
+                maxWidth: "480px",
+                background: "#fff",
+                padding: "14px 16px",
+                marginBottom: "14px",
+                borderRadius: "12px",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+                listStyle: "none",
+                cursor: "pointer",
+              }}
+              onClick={() => {
+                // 히스토리에서 선택한 매장/상품 정보 저장
+                localStorage.setItem("historyFlag", "1");
+                localStorage.setItem("historyStoreId", item.store_id);
+                localStorage.setItem("historyGoodId", item.good_id.toString());
+                localStorage.setItem("historyGoodName", item.good_name);
+
+                navigate("/map");
+              }}
+            >
+              {/* 날짜 */}
+              <div
+                style={{
+                  fontSize: "12px",
+                  color: "#888",
+                  marginBottom: "6px",
+                }}
+              >
+                {new Date(item.created_at).toLocaleString()}
+              </div>
+
+              {/* 상품명 */}
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  marginBottom: "4px",
+                }}
+              >
+                {item.good_name}
+              </div>
+
+              {/* 매장명 */}
+              <div
+                style={{
+                  fontSize: "14px",
+                  color: "#444",
+                  marginBottom: "8px",
+                }}
+              >
+                {item.store_name}
+              </div>
+
+              {/* 금액 영역 */}
+              <div style={{ fontSize: "14px", marginTop: "4px" }}>
+                {/* 당시 가격은 항상 표시 */}
+                <div>
+                  <span style={{ color: "#555" }}>당시 가격: </span>
+                  <strong>
+                    {item.price != null
+                      ? item.price.toLocaleString() + "원"
+                      : "정보 없음"}
+                  </strong>
+                </div>
+
+                {/* 현재 금액: price와 다를 때만 추가로 표시 */}
+                {item.current_price != null && item.current_price !== item.price && (
+                  <div style={{ marginTop: "3px" }}>
+                    <span style={{ color: "#555" }}>현재 가격: </span>
+                    <strong style={{ color: "#d9534f" }}>
+                      {item.current_price.toLocaleString()}원
+                    </strong>
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

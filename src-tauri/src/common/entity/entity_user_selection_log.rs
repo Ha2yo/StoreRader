@@ -9,4 +9,5 @@ pub struct UserSelectionLogEntity {
     pub good_id: String,
     pub preference_type: String,
     pub created_at: NaiveDateTime,
+    pub price: i32,
 }

@@ -19,7 +19,7 @@ function Navigation() {
       <Nav className="w-100 justify-content-around">
         <Nav.Link as={Link} to="/home">Home</Nav.Link>
         <Nav.Link as={Link} to="/map">Map</Nav.Link>
-        <Nav.Link as={Link} to="/mypage">page</Nav.Link>
+        <Nav.Link as={Link} to="/mypage">My Info</Nav.Link>
       </Nav>
     </Navbar>
   );

@@ -2,12 +2,16 @@ use sqlx::PgPool;
 
 use crate::{
     common::repository::{
+        repository_join::fetch_user_selection_logs,
         repository_user_preference::{
             get_preference_by_user_id, increment_selection_count, update_user_weights,
         },
         repository_user_selection_log::{get_recent_10_logs, insert_user_selection_log},
     },
-    domain::{auth::service::decode_jwt, log::dto::dto_req::UserSelectionLogReq},
+    domain::{
+        auth::service::decode_jwt,
+        log::dto::{dto_req::UserSelectionLogReq, dto_res::UserSelectionLogRes},
+    },
 };
 
 pub async fn update_user_selection_log(
@@ -53,7 +57,9 @@ pub async fn update_user_selection_log(
 
         // 과거 가중치와 혼합
         let alpha = 0.2; // 최근 데이터 반영 비율
-        let w_price = old_preference.w_price * (1.0 - alpha) + new_w_price_raw * alpha;
+        let mut w_price = old_preference.w_price * (1.0 - alpha) + new_w_price_raw * alpha;
+
+        w_price = (w_price * 1000.0).round() / 1000.0; // 소수점 3자리 유지
         let w_distance = 1.0 - w_price;
 
         // DB 업데이트
@@ -63,4 +69,18 @@ pub async fn update_user_selection_log(
     }
 
     Ok(())
+}
+
+pub async fn get_user_selection_logs(
+    pool: &PgPool,
+    token: &str,
+) -> Result<Vec<UserSelectionLogRes>, String> {
+    let claims = decode_jwt(token)?;
+    let user_id: i32 = claims
+        .sub
+        .parse::<i32>()
+        .map_err(|_| "user_id 파싱 실패 (JWT sub이 숫자가 아님)".to_string())?;
+
+    // 단순히 repository 호출 후 반환하는 구조
+    fetch_user_selection_logs(pool, user_id).await
 }

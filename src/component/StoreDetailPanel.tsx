@@ -95,7 +95,9 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
             const payload = {
                 store_id: store.store_id,
                 good_id: goodId,
+                price: store.price,
                 preference_type: preferenceType,
+                
             };
             console.log("서버 전송 데이터:", payload);
 

@@ -1,0 +1,2 @@
+ALTER TABLE user_selection_log
+ADD COLUMN price INT NOT NULL DEFAULT 0;
