@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, log::handler::{get_user_selection_log_handler, update_user_selection_log_handler}, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::get_all_stores_handler, sync::handler::{upsert_api_data_handler, upsert_prices_handler, upsert_region_codes_handler}
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, log::handler::{get_user_selection_log_handler, update_user_selection_log_handler}, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::get_all_stores_handler, sync::handler::{upsert_api_data_handler, upsert_price_change_handler, upsert_prices_handler, upsert_region_codes_handler}
     },
 };
 
@@ -72,7 +72,9 @@ async fn main() {
         // 지역별 코드를 공공데이터 API에서 받아 DB에 저장
         .route("/sync/regionCodes", get(upsert_region_codes_handler))
         // 매장별 가격정보를 공공데이터 API에서 받아 DB에 저장
-        .route("/sync/Prices", get(upsert_prices_handler));
+        .route("/sync/Prices", get(upsert_prices_handler))
+        // 매장별 가격 정보를 prices 테이블에서 받아 가격이 변동한 제품만 별도의 테이블에 저장
+        .route("/sync/PriceChange", get(upsert_price_change_handler));
 
     // "/get..."
     let get_routes = Router::new()

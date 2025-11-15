@@ -31,6 +31,8 @@ pub async fn find_latest_prices_by_good_name(
     Ok(result)
 }
 
+
+
 pub async fn fetch_user_selection_logs(
     pool: &PgPool,
     user_id: i32,

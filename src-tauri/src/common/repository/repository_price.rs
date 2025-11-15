@@ -1,5 +1,6 @@
 use crate::common::entity::entity_price::PriceEntity;
-use sqlx::PgPool;
+use sqlx::{PgPool, Result};
+use sqlx::Row;
 
 /// 가격 정보를 DB에 upsert
 pub async fn upsert_price_to_db(pool: &PgPool, price: &PriceEntity) -> Result<(), String> {
@@ -29,4 +30,23 @@ pub async fn upsert_price_to_db(pool: &PgPool, price: &PriceEntity) -> Result<()
     .map_err(|e| format!("가격 데이터 업데이트 실패: {}", e))?;
 
     Ok(())
+}
+
+
+pub async fn find_prev_day(pool: &PgPool, latest_day: &str) -> Result<Option<String>, String> {
+    let row = sqlx::query(
+    "SELECT inspect_day
+        FROM prices
+        WHERE inspect_day < $1
+        ORDER BY inspect_day DESC
+        LIMIT 1",
+    )
+    .bind(latest_day)
+    .fetch_optional(pool)
+    .await
+    .map_err(|e| format!("가격 데이터 업데이트 실패: {}", e))?;
+    
+    let prev_day = row.map(|row| row.get::<String, _>("inspect_day"));
+
+    Ok(prev_day)
 }

@@ -5,17 +5,28 @@ use std::io::{self, Write};
 
 use crate::{
     common::{
-        entity::{entity_good::GoodEntity, entity_price::PriceEntity, entity_region::RegionEntity, entity_store::StoreEntity},
+        entity::{
+            entity_good::GoodEntity, entity_price::PriceEntity, entity_region::RegionEntity,
+            entity_store::StoreEntity,
+        },
         external::{
-            api_public_data::{fetch_goods_api, fetch_prices_api, fetch_region_codes_api, fetch_store_api},
+            api_public_data::{
+                fetch_goods_api, fetch_prices_api, fetch_region_codes_api, fetch_store_api,
+            },
             api_vworld::geocode_with_vworld,
         },
         repository::{
-            repository_good::upsert_good_to_db, repository_price::upsert_price_to_db, repository_region::upsert_region_to_db, repository_store::{get_all_stores_id, upsert_store_to_db}
+            repository_good::upsert_good_to_db,
+            repository_price::{find_prev_day, upsert_price_to_db},
+            repository_region::upsert_region_to_db,
+            repository_store::{get_all_stores_id, upsert_store_to_db}, repostiory_price_change::insert_price_change,
         },
     },
     domain::sync::dto::{
-        dto_goods_api::ApiResponse as goodApiResponse, dto_prices_api::ApiResponse as priceApiResponse, dto_region_codes_api::ApiResponse as regionCodesApiResponse, dto_stores_api::ApiResponse as storeApiResponse
+        dto_goods_api::ApiResponse as goodApiResponse,
+        dto_prices_api::ApiResponse as priceApiResponse,
+        dto_region_codes_api::ApiResponse as regionCodesApiResponse,
+        dto_stores_api::ApiResponse as storeApiResponse,
     },
 };
 
@@ -189,16 +200,13 @@ pub async fn upsert_region_codes(pool: &PgPool) -> Result<(), String> {
     let text = fetch_region_codes_api().await?;
 
     // XML → 구조체 변환
-    let parsed: regionCodesApiResponse = from_str(&text).map_err(|e| format!("XML 파싱 실패: {}", e))?;
+    let parsed: regionCodesApiResponse =
+        from_str(&text).map_err(|e| format!("XML 파싱 실패: {}", e))?;
 
     let mut total_count: i32 = 0;
 
     for item in parsed.result.items {
-        let level:i16 = if item.high_code == "020000000"{
-            1
-        } else {
-            2
-        };
+        let level: i16 = if item.high_code == "020000000" { 1 } else { 2 };
         let region = RegionEntity {
             code: item.code.clone(),
             name: item.code_name.clone(),
@@ -212,4 +220,20 @@ pub async fn upsert_region_codes(pool: &PgPool) -> Result<(), String> {
     tracing::info!("지역코드 데이터 {}개 업데이트 완료", total_count);
 
     Ok(())
+}
+
+pub async fn upsert_price_change(pool: &PgPool, latest_day: &str) -> Result<String, String> {
+
+    // inpece_day 기준 prev_day 조회
+    let prev_day = find_prev_day(pool, latest_day)
+        .await
+        .map_err(|e| format!("prev_day 조회 실패: {}", e))?
+        .ok_or("이전 조사일이 존재하지 않습니다.")?;
+
+    let inserted_count = insert_price_change(pool, latest_day, &prev_day).await?;
+
+    Ok(format!(
+        "price_change 생성 완료: latest={}, prev={}, inserted={}",
+        latest_day, prev_day, inserted_count
+    ))
 }
