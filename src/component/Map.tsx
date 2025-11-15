@@ -202,6 +202,7 @@ function Map() {
         const selectedDistance = localStorage.getItem("selectedDistance");
         const selectedGoodName = localStorage.getItem("selectedGoodName");
 
+
         const pos = loadSavedPosition(); // 사용자 위치
 
         let priceData: StorePrice[] = [];
@@ -368,7 +369,9 @@ function Map() {
                 효율 점수: ${store.score.toFixed(3)}
               `);
             } else {
-              marker.bindPopup(`<b>${idx + 1}위 추천 매장</b>`);
+              marker.bindPopup(`
+                <b>${idx + 1}위 추천 매장</b><br/>
+                ₩${store.price.toLocaleString()}<br/>`);
             }
             markersRef.current[store.store_id] = marker;
 
@@ -393,6 +396,7 @@ function Map() {
       }
     })();
   }, [renderKey]); // 지역 변경 시 재실행
+
 
   // 사용자 위치 마커 갱신
   useEffect(() => {

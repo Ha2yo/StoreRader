@@ -1,4 +1,4 @@
-use crate::domain::{log::dto::dto_res::UserSelectionLogRes, price::dto::dto_res::PriceRes};
+use crate::domain::{log::dto::dto_res::UserSelectionLogRes, price::dto::dto_res::PriceRes, price_change::dto::dto_res::PriceTrendRes};
 use sqlx::PgPool;
 
 pub async fn find_latest_prices_by_good_name(
@@ -70,4 +70,62 @@ pub async fn fetch_user_selection_logs(
     .map_err(|e| format!("로그 조회 실패: {}", e))?;
 
     Ok(result)
+}
+
+
+pub async fn fetch_price_drop_top(
+    pool: &PgPool,
+) -> Result<Vec<PriceTrendRes>, String> {
+
+    sqlx::query_as::<_, PriceTrendRes>("
+    WITH latest_day AS (
+            SELECT MAX(inspect_day) AS day
+            FROM price_change
+        )
+        SELECT
+            pc.good_id,
+            g.good_name,
+            CAST(AVG(pc.diff) AS INT) AS avg_drop,
+            MIN(pc.diff) AS min_drop,
+            MAX(pc.diff) AS max_drop,
+            COUNT(*) AS change_count,
+            pc.inspect_day
+        FROM price_change pc
+        JOIN latest_day ld ON pc.inspect_day = ld.day
+        JOIN goods g ON pc.good_id = g.good_id
+        WHERE pc.diff < 0
+        GROUP BY pc.good_id, g.good_name, pc.inspect_day
+        ORDER BY avg_drop ASC
+        LIMIT 50;")
+        .fetch_all(pool)
+        .await
+        .map_err(|e| format!("가격 변동 정보 (하락) 조회 실패: {}", e))
+}
+
+pub async fn fetch_price_rise_top(
+    pool: &PgPool,
+) -> Result<Vec<PriceTrendRes>, String> {
+sqlx::query_as::<_, PriceTrendRes>("
+WITH latest_day AS (
+            SELECT MAX(inspect_day) AS day
+            FROM price_change
+        )
+        SELECT
+            pc.good_id,
+            g.good_name,
+            CAST(AVG(pc.diff) AS INT) AS avg_drop,
+            MIN(pc.diff) AS min_drop,
+            MAX(pc.diff) AS max_drop,
+            COUNT(*) AS change_count,
+            pc.inspect_day
+        FROM price_change pc
+        JOIN latest_day ld ON pc.inspect_day = ld.day
+        JOIN goods g ON pc.good_id = g.good_id
+        WHERE pc.diff > 0
+        GROUP BY pc.good_id, g.good_name, pc.inspect_day
+        ORDER BY avg_drop DESC
+        LIMIT 50;")
+        .fetch_all(pool)
+        .await
+        .map_err(|e| format!("가격 변동 정보 (상승) 조회 실패: {}", e))
 }

@@ -36,7 +36,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, log::handler::{get_user_selection_log_handler, update_user_selection_log_handler}, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, region::handler::get_all_region_codes_handler, store::handler::get_all_stores_handler, sync::handler::{upsert_api_data_handler, upsert_price_change_handler, upsert_prices_handler, upsert_region_codes_handler}
+        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, log::handler::{get_user_selection_log_handler, update_user_selection_log_handler}, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, price_change::handler::get_price_change_handler, region::handler::get_all_region_codes_handler, store::handler::get_all_stores_handler, sync::handler::{upsert_api_data_handler, upsert_price_change_handler, upsert_prices_handler, upsert_region_codes_handler}
     },
 };
 
@@ -89,8 +89,10 @@ async fn main() {
         // DB에 저장된 유저별 선호도 정보를 요청
         .route("/get/userPreferenceInfo", post(get_user_preference_handler))
         // DB에 저장된 매장 선택 로그를 요청
-        .route("/get/userSelectionLogInfo",get(get_user_selection_log_handler));
-    
+        .route("/get/userSelectionLogInfo",get(get_user_selection_log_handler))
+        // DB에 저장된 가격 변동 정보를 요청
+        .route("/get/priceChangeInfo", get(get_price_change_handler));
+
     let update_routes = Router::new()
         .route("/update/userSelectionLog", post(update_user_selection_log_handler));
     

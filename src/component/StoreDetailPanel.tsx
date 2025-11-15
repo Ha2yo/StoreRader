@@ -144,20 +144,13 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                 }}
             >
                 {/* 매장 기본 정보 */}
-                <h3 style={{ margin: "0 0 8px 0" }}>{store.store_name} {store.store_id}</h3>
+                <h3 style={{ margin: "0 0 8px 0" }}>{store.store_name}</h3>
                 <p>{store.road_addr}</p>
                 <p>{store.jibun_addr}</p>
                 <p>📞 {store.tel_no ?? "전화번호 없음"}</p>
 
                 {distanceKm && (
                     <p>{distanceKm} km</p>
-                )}
-                {store.price !== null && store.price !== undefined && (
-                    <p>₩ {store.price.toLocaleString()}</p>
-                )}
-
-                {store.inspect_day && (
-                    <p>조사일자: {store.inspect_day}</p>
                 )}
 
                 {/* 길찾기 버튼 */}

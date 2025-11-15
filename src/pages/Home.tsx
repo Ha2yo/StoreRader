@@ -3,12 +3,13 @@
  사용자에게 메인 콘텐츠를 표시한다
 ***********************************************************/
 
+import PriceChange from "../component/PriceChange";
+
 function Home() {
   console.log('홈 화면 로딩');
   return (
     <div className='container'>
-      
-      <h1>Home</h1>
+      <PriceChange />
     </div>
   );
 }

@@ -14,7 +14,6 @@
     - "/mypage" -> MyPage (사용자 정보 및 계정 관리 화면)
 ***********************************************************/
 
-import App from './App';
 import Home from './pages/Home';
 import MyPage from './pages/MyPage.tsx';
 import MapPage from './pages/MapPage';
@@ -29,7 +28,7 @@ function Routing() {
                 <BrowserRouter>
                     <Navigation />
                     <Routes>
-                        <Route path='/' element={<App />} />
+                        <Route path='/' element={<Home />} />
                         <Route path='/home' element={<Home />} />
                         <Route path='/map' element={<MapPage />} />
                         <Route path='/mypage' element={<MyPage />} />
