@@ -1,6 +1,6 @@
 use sqlx::FromRow;
 
-#[derive(Debug, FromRow, Clone)]
+#[derive(Debug, FromRow)]
 pub struct RegionEntity {
     pub code: String,
     pub name: String,

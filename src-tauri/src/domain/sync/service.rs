@@ -1,3 +1,25 @@
+/************************************************************************
+ * File: domain/sync/service.rs
+ * Description:
+ *     공공데이터 동기화 도메인의 서비스 로직을 처리한다.
+ *
+ * Responsibilities:
+ *     1) upsert_good_and_store()
+ *         - 차례대로 2, 3번 함수를 실행
+ * 
+ *     2) upsert_good()
+ *         - 상품 정보 API 연동 및 DB 반영
+ * 
+ *     3) upsert_store()
+ *         - 매장 정보 API 연동 및 DB 반영
+ * 
+ *     4) upsert_price()
+ *         - 특정 조사일 가격 정보 수집 및 저장
+ * 
+ *     5) upsert_region_codes()
+ *         - 지역 코드 API 연동 및 DB 반영 
+************************************************************************/
+
 use chrono::Utc;
 use quick_xml::de::from_str;
 use sqlx::PgPool;
@@ -11,15 +33,15 @@ use crate::{
         },
         external::{
             api_public_data::{
-                fetch_goods_api, fetch_prices_api, fetch_region_codes_api, fetch_store_api,
+                fetch_goods_api, fetch_prices_api, fetch_region_codes_api, fetch_stores_api,
             },
             api_vworld::geocode_with_vworld,
         },
         repository::{
-            repository_good::upsert_good_to_db,
-            repository_price::{find_prev_day, upsert_price_to_db},
-            repository_region::upsert_region_to_db,
-            repository_store::{get_all_stores_id, upsert_store_to_db}, repostiory_price_change::insert_price_change,
+            repository_good::insert_or_update_good,
+            repository_price::insert_price_to_db,
+            repository_region::insert_region_codes_if_not_exists,
+            repository_store::{get_all_stores_id, insert_or_update_store},
         },
     },
     domain::sync::dto::{
@@ -30,24 +52,42 @@ use crate::{
     },
 };
 
-pub async fn upsert_api_data(pool: &PgPool) -> Result<(), String> {
+/// 상품 + 매장 데이터를 모두 동기화한다.
+/// 
+/// # Arguments
+/// * `pool` - DB 커넥션 풀
+/// 
+/// # Returns
+/// * `Ok(())`      - 동기화 완료
+/// * `Err(String)` - 동기화 실패
+pub async fn upsert_good_and_store(
+    pool: &PgPool
+) -> Result<(), String> {
     if let Err(e) = upsert_good(pool).await {
         tracing::error!("상품 데이터 동기화 실패: {}", e);
         return Err(format!("상품 데이터 동기화 실패: {}", e));
     }
+
     if let Err(e) = upsert_store(pool).await {
         tracing::error!("매장 데이터 동기화 실패: {}", e);
         return Err(format!("매장 데이터 동기화 실패: {}", e));
     }
+
     Ok(())
 }
 
-// API 상품 데이터 받아서 DB에 저장
-pub async fn upsert_good(pool: &PgPool) -> Result<(), String> {
-    // 본문 추출
+/// 상품 정보를 API로부터 가져와 goods 테이블에 저장/갱신한다.
+/// 
+/// # Arguments
+/// * `pool` - DB 커넥션 풀
+/// 
+/// # Returns
+/// * `Ok(())`      - 저장 완료
+/// * `Err(String)` - 저장 실패
+pub async fn upsert_good(
+    pool: &PgPool
+) -> Result<(), String> {
     let text = fetch_goods_api().await?;
-
-    // XML → 구조체 변환
     let parsed: goodApiResponse = from_str(&text).map_err(|e| format!("XML 파싱 실패: {}", e))?;
 
     let mut total_count: i32 = 0;
@@ -66,7 +106,7 @@ pub async fn upsert_good(pool: &PgPool) -> Result<(), String> {
             updated_at: Utc::now().naive_utc(),
         };
 
-        upsert_good_to_db(pool, &good).await?;
+        insert_or_update_good(pool, &good).await?;
         total_count += 1;
     }
     tracing::info!("상품 데이터 {}개 업데이트 완료", total_count);
@@ -74,21 +114,29 @@ pub async fn upsert_good(pool: &PgPool) -> Result<(), String> {
     Ok(())
 }
 
-// API 매장 데이터 받아서 DB에 저장
-pub async fn upsert_store(pool: &PgPool) -> Result<(), String> {
-    let text = fetch_store_api().await?;
+/// 매장 정보를 API로부터 가져와 stores 테이블에 저장/갱신한다.
+/// 
+/// # Arguments
+/// * `pool` - DB 커넥션 풀
+/// 
+/// # Returns
+/// * `Ok(())`      - 저장 완료
+/// * `Err(String)` - 저장 실패
+pub async fn upsert_store(
+    pool: &PgPool
+) -> Result<(), String> {
+    let text = fetch_stores_api().await?;
     let parsed: storeApiResponse = from_str(&text).map_err(|e| format!("XML 파싱 실패: {}", e))?;
 
     let mut total_count = 0;
     let mut success_count = 0;
     let mut fail_count = 0;
+
     for item in parsed.result.items {
-        // 주소가 완전히 없는 경우는 스킵
         if item.road_addr.is_none() && item.jibun_addr.is_none() {
             continue;
         }
 
-        // 기본 주소로 사용할 필드 선택 (도로명 우선)
         let addr = item
             .road_addr
             .clone()
@@ -114,7 +162,7 @@ pub async fn upsert_store(pool: &PgPool) -> Result<(), String> {
                     area_code: item.area_code.clone(),
                     area_detail_code: item.area_detail_code.clone(),
                 };
-                upsert_store_to_db(pool, &store).await?;
+                insert_or_update_store(pool, &store).await?;
             }
             None => {
                 fail_count += 1;
@@ -133,22 +181,32 @@ pub async fn upsert_store(pool: &PgPool) -> Result<(), String> {
         total_count,
         success_count
     );
+
     Ok(())
 }
 
-pub async fn upsert_price(pool: &PgPool, inspect_day: &str) -> Result<(), String> {
-    // DB에서 매장 ID 목록 가져오기
+/// 특정 조사일 기준 모든 매장의 가격 데이터를 API로부터 가져와 
+/// prices 테이블에 저장/갱신한다.
+/// 
+/// # Arguments
+/// * `pool`        - DB 커넥션 풀
+/// * `inspect_day` - 조사일(YYYYMMDD)
+/// 
+/// # Returns
+/// * `Ok(())`      - 저장 완료
+/// * `Err(String)` - 저장 실패
+pub async fn upsert_price(
+    pool: &PgPool, 
+    inspect_day: &str
+) -> Result<(), String> {
     let store_ids = get_all_stores_id(pool).await?;
 
     let mut total_count = 0;
     let mut success_count = 0;
 
-    // 각 매장 ID에 대해 순회
     for store_id in store_ids {
-        // API 호출
         let text = fetch_prices_api(inspect_day, &store_id).await?;
 
-        // 데이터가 없는 매장은 스킵
         if !text.contains("goodPriceVO") {
             tracing::warn!("조사 데이터 없음 — store_id {}", store_id);
             continue;
@@ -157,16 +215,13 @@ pub async fn upsert_price(pool: &PgPool, inspect_day: &str) -> Result<(), String
         let parsed: priceApiResponse =
             from_str(&text).map_err(|e| format!("XML 파싱 실패 (store_id {}): {}", store_id, e))?;
 
-        // 응답 데이터 순회
         for item in parsed.result.items {
-            // 가격이 비어 있으면 스킵
             if item.good_price.trim().is_empty() {
                 continue;
             }
 
-            // PriceEntity 생성
             let price = PriceEntity {
-                id: 0, // SERIAL이라 임시
+                id: 0,
                 good_id: item.good_id.clone(),
                 store_id: item.entp_id.clone(),
                 inspect_day: item.good_inspect_day.clone(),
@@ -178,8 +233,7 @@ pub async fn upsert_price(pool: &PgPool, inspect_day: &str) -> Result<(), String
                 created_at: Utc::now().naive_utc(),
             };
 
-            // DB 저장 (repository 호출)
-            upsert_price_to_db(pool, &price).await?;
+            insert_price_to_db(pool, &price).await?;
 
             total_count += 1;
         }
@@ -189,17 +243,21 @@ pub async fn upsert_price(pool: &PgPool, inspect_day: &str) -> Result<(), String
         io::stdout().flush().unwrap();
     }
 
-    // 로그 출력
     tracing::info!("가격 데이터 {}개 업데이트 완료", total_count);
 
     Ok(())
 }
 
+/// 지역 코드를 API로부터 가져와 regions 테이블에 저장/갱신한다.
+/// 
+/// # Arguments
+/// * `pool` - DB 커넥션 풀
+/// 
+/// # Returns
+/// * `Ok(())`      - 저장 완료
+/// * `Err(String)` - 저장 실패
 pub async fn upsert_region_codes(pool: &PgPool) -> Result<(), String> {
-    // 본문 추출
     let text = fetch_region_codes_api().await?;
-
-    // XML → 구조체 변환
     let parsed: regionCodesApiResponse =
         from_str(&text).map_err(|e| format!("XML 파싱 실패: {}", e))?;
 
@@ -214,26 +272,10 @@ pub async fn upsert_region_codes(pool: &PgPool) -> Result<(), String> {
             level,
         };
 
-        upsert_region_to_db(pool, &region).await?;
+        insert_region_codes_if_not_exists(pool, &region).await?;
         total_count += 1;
     }
     tracing::info!("지역코드 데이터 {}개 업데이트 완료", total_count);
 
     Ok(())
-}
-
-pub async fn upsert_price_change(pool: &PgPool, latest_day: &str) -> Result<String, String> {
-
-    // inpece_day 기준 prev_day 조회
-    let prev_day = find_prev_day(pool, latest_day)
-        .await
-        .map_err(|e| format!("prev_day 조회 실패: {}", e))?
-        .ok_or("이전 조사일이 존재하지 않습니다.")?;
-
-    let inserted_count = insert_price_change(pool, latest_day, &prev_day).await?;
-
-    Ok(format!(
-        "price_change 생성 완료: latest={}, prev={}, inserted={}",
-        latest_day, prev_day, inserted_count
-    ))
 }

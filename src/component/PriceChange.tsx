@@ -23,7 +23,7 @@ function PriceChange() {
     const navigate = useNavigate();
 
     async function fetchPriceChange(status: "down" | "up", baseURL: string) {
-        const res = await fetch(`${baseURL}/get/priceChangeInfo?status=${status}`);
+        const res = await fetch(`${baseURL}/get/price-change?status=${status}`);
         if (!res.ok) throw new Error("API 요청 실패");
         return (await res.json()) as PriceChangeItem[];
     }

@@ -101,7 +101,7 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
             };
             console.log("서버 전송 데이터:", payload);
 
-            const res = await fetch(`${apiURL}/update/userSelectionLog`, {
+            const res = await fetch(`${apiURL}/update/user-selection-log`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

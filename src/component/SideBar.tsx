@@ -1,3 +1,4 @@
+import { invoke } from "@tauri-apps/api/core";
 import { useEffect, useState } from "react";
 
 // onclose: 사이드바 닫는 함수
@@ -6,26 +7,12 @@ interface SidebarProps {
 }
 
 // 대한민국 지역별 코드
-const regions = [
-  { name: "전체", code: "020000000" },
-  { name: "서울특별시", code: "020100000" },
-  { name: "광주광역시", code: "020200000" },
-  { name: "대구광역시", code: "020300000" },
-  { name: "대전광역시", code: "020400000" },
-  { name: "부산광역시", code: "020500000" },
-  { name: "울산광역시", code: "020600000" },
-  { name: "인천광역시", code: "020700000" },
-  { name: "강원특별자치도", code: "020800000" },
-  { name: "경기도", code: "020900000" },
-  { name: "경상남도", code: "021000000" },
-  { name: "경상북도", code: "021100000" },
-  { name: "전라남도", code: "021200000" },
-  { name: "전북특별자치도", code: "021300000" },
-  { name: "충청남도", code: "021400000" },
-  { name: "충청북도", code: "021500000" },
-  { name: "제주특별자치도", code: "021600000" },
-  { name: "세종특별자치시", code: "021700000" },
-];
+interface Region {
+  code: string;
+  name: string;
+  parent_code: string | null;
+  level: number;
+}
 
 // 거리 필터 (단위: km)
 const distances =[
@@ -40,6 +27,9 @@ function Sidebar({ onClose }: SidebarProps) {
   const [showRegionList, setShowRegionList] = useState(false);
   const [showDistanceList, setShowDistanceList] = useState(false);
 
+  // DB에서 불러온 지역 데이터
+  const [regions, setRegions] = useState<Region[]>([]);
+
   // 지역 & 거리 선택 상태
   const [selectedRegion, setSelectedRegion] = useState<string>(
     localStorage.getItem("selectedRegionCode") || "020000000"
@@ -48,14 +38,42 @@ function Sidebar({ onClose }: SidebarProps) {
     localStorage.getItem("selectedDistance") || null
   );
 
-  // 초기 기본값 설정 ("전체"로 설정되게끔)
+  // 초기 기본값 설정
   useEffect(() => {
     if (!localStorage.getItem("selectedRegionCode")) {
       localStorage.setItem("selectedRegionCode", "020000000");
     }
   }, []);
 
-  // 지역 선택 시 (이 때, 거리 선택은 해제)
+  // ⭐ DB에서 지역코드 불러오기
+  useEffect(() => {
+    async function loadRegions() {
+      try {
+        // API_URL 불러오기
+        const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
+
+
+        // 호출
+        const res = await fetch(`${apiURL}/get/region-codes/all`);
+        const data: Region[] = await res.json();
+
+        // level = 1 만 상위지역으로 사용
+        const topRegions = data.filter((r) => r.level === 1);
+
+        // "전체" 추가
+        setRegions([
+          { code: "020000000", name: "전체", parent_code: null, level: 0 },
+          ...topRegions,
+        ]);
+      } catch (err) {
+        console.error("지역 코드 불러오기 실패:", err);
+      }
+    }
+
+    loadRegions();
+  }, []);
+
+  // 지역 선택
   const handleRegionSelect = (regionCode: string) => {
     setSelectedRegion(regionCode);
     setSelectedDistance(null);
@@ -63,21 +81,23 @@ function Sidebar({ onClose }: SidebarProps) {
     localStorage.setItem("selectedRegionCode", regionCode);
     localStorage.removeItem("selectedDistance");
 
-    window.dispatchEvent(new CustomEvent("regionChange", { detail: regionCode })); // ✅ 추가
-    console.log("지역 코드 저장 완료:", regionCode);
+    window.dispatchEvent(
+      new CustomEvent("regionChange", { detail: regionCode })
+    );
     onClose();
   };
 
-  // 거리 선택 시 (지역 선택은 해제)
+  // 거리 선택
   const handleDistanceSelect = (distanceCode: string) => {
     setSelectedDistance(distanceCode);
-    setSelectedRegion("020000000"); // 지역을 "전체"로 초기화
+    setSelectedRegion("020000000");
 
     localStorage.setItem("selectedDistance", distanceCode);
     localStorage.setItem("selectedRegionCode", "020000000");
 
-    window.dispatchEvent(new CustomEvent("distanceChange", { detail: distanceCode }));
-    console.log("거리 설정 완료:", distanceCode);
+    window.dispatchEvent(
+      new CustomEvent("distanceChange", { detail: distanceCode })
+    );
     onClose();
   };
 

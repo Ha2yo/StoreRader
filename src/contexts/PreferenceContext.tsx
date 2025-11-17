@@ -29,7 +29,7 @@ export const PreferenceProvider = ({ children }: { children: React.ReactNode }) 
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
         console.log("API URL:", apiURL);
 
-        const res = await fetch(`${apiURL}/get/userPreferenceInfo`, {
+        const res = await fetch(`${apiURL}/get/user-preferences`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

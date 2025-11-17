@@ -103,7 +103,7 @@ function Login() {
     const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
     const jwt = localStorage.getItem("jwt");
 
-    const res = await fetch(`${apiURL}/get/userSelectionLogInfo`, {
+    const res = await fetch(`${apiURL}/get/user-selection-log`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
