@@ -1,29 +1,30 @@
-/***********************************************************
- main_axum.rs는 StoreRader 서버의 진입점으로,
- 서버 초기화 및 주요 라우팅 설정을 담당한다
-
- 1. init_env()
-    - 실행 환경에 따라 .env 파일을 로드
-    - Android / Desktop 환경 모두 대응
-
- 2. tracing_subscriber::registry()
-    - 로그 레벨 지정
-    - 로그 포맷팅 및 레이어 지정
-
- 3. connect_db()
-    - PostgreSQL 연결 풀 생성
-
- 4. CORS (Cross-Origin Resouce Sharing) 설정
-    - 다른 도메인에서의 접속 허용
-
- 5. 라우터 구성
-    - "/" -> 단순 헬스체크용 엔드포인트 (GET)
-    - "/auth/google" -> Google OAuth 로그인 요청 처리 (POST)
-
- 6. 서버 실행
-    - 0.0.0.0:3000에서 TCP 리스너 바인딩
-    - HTTP 서버 시작
-***********************************************************/
+/************************************************************************
+ * File: main_axum.rs
+ * Description:
+ *     StoreRader 서버의 엔트리 포인트. 환경 변수 로드, 로깅 초기화, DB 연결,
+ *     CORS 설정, 라우터 통합 및 서버 실행까지 전체 서버의 실행 흐름을 담당한다.
+ *
+ * Reponsibilities:
+ *     1) init_env()
+ *         - 환경 변수 (.env) 로드
+ *
+ *     2) tracing_subscriber
+ *         - 로그 레벨 및 출력 포맷 설정
+ *
+ *     3) connect_db()
+ *         - PostgreSQL 커넥션 풀 생성
+ *
+ *     4) CORS 설정
+ *         - 프론트엔드 (Tarui/React) 접근 허용
+ *
+ *     5) 라우터 구성
+ *         - /auth/...         : 인증
+ *         - /sync/...         : 공공데이터 기반 DB 동기화
+ *         - /get/...          : 데이터 조회
+ *         - /update/...       : 데이터 갱신
+ *
+ *     6) 서버 실행 (0.0.0.0:3000 리스닝)
+************************************************************************/
 
 use axum::{
     routing::{get, post},
@@ -36,14 +37,24 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use storerader_lib::{
     config::{database::connect_db, env::init_env},
     domain::{
-        auth::handler::auth_google_handler, good::handler::get_all_goods_handler, log::handler::{get_user_selection_log_handler, update_user_selection_log_handler}, preference::handler::get_user_preference_handler, price::handler::get_prices_handler, price_change::handler::get_price_change_handler, region::handler::get_all_region_codes_handler, store::handler::get_all_stores_handler, sync::handler::{upsert_api_data_handler, upsert_price_change_handler, upsert_prices_handler, upsert_region_codes_handler}
+        auth::handler::auth_google_handler,
+        good::handler::goods_list_handler,
+        price::handler::prices_get_handler,
+        price_change::handler::{price_change_get_handler, sync_price_change_handler},
+        region_code::handler::region_codes_list_handler,
+        store::handler::stores_list_handler,
+        sync::handler::{
+            sync_goods_and_stores_handler, sync_prices_handler, sync_region_codes_handler,
+        },
+        user_log::handler::{user_selection_log_get_handler, user_selection_log_update_handler},
+        user_preference::handler::user_preference_get_handler,
     },
 };
 
 #[tokio::main]
 async fn main() {
     init_env();
-    // 로그 세팅
+
     tracing_subscriber::registry()
         .with(tracing_subscriber::EnvFilter::new(
             std::env::var("RUST_LOG").unwrap_or_else(|_| "info".into()),
@@ -51,52 +62,33 @@ async fn main() {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    // 데이터베이스 풀 생성
     let pool = connect_db().await;
 
-    // CORS 설정
     let cors = CorsLayer::new()
         .allow_origin(Any)
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
         .allow_headers(Any);
 
-    // "/auth..."
-    let auth_routes = Router::new()
-        // id token 검증 후 서버 자체 JWT 발급
-        .route("/auth/google", post(auth_google_handler));
+    let auth_routes = Router::new().route("/auth/google", post(auth_google_handler));
 
-    // "/sync..."
     let sync_routes = Router::new()
-        // 상품정보와 매장정보를 공공데이터 API에서 받아 DB에 저장
-        .route("/sync/goodsAndStores", get(upsert_api_data_handler))
-        // 지역별 코드를 공공데이터 API에서 받아 DB에 저장
-        .route("/sync/regionCodes", get(upsert_region_codes_handler))
-        // 매장별 가격정보를 공공데이터 API에서 받아 DB에 저장
-        .route("/sync/Prices", get(upsert_prices_handler))
-        // 매장별 가격 정보를 prices 테이블에서 받아 가격이 변동한 제품만 별도의 테이블에 저장
-        .route("/sync/PriceChange", get(upsert_price_change_handler));
+        .route("/sync/goods-and-stores", get(sync_goods_and_stores_handler))
+        .route("/sync/region-codes", get(sync_region_codes_handler))
+        .route("/sync/prices", get(sync_prices_handler))
+        .route("/sync/price-change", get(sync_price_change_handler));
 
-    // "/get..."
     let get_routes = Router::new()
-        // DB에 저장된 모든 매장정보를 요청
-        .route("/get/StoreInfo/all", get(get_all_stores_handler))
-        // DB에 저장된 모든 상품정보를 요청
-        .route("/get/GoodInfo/all", get(get_all_goods_handler))
-        // DB에 저장된 매장별 가격 정보를 요청 (유저가 입력한 상품명에 관한 가격 정보)
-        .route("/get/PriceInfo", get(get_prices_handler))
-        // DB에 저장된 모든 지역별 코드 정보를 요청
-        .route("/get/RegionCodeInfo/all", get(get_all_region_codes_handler))
-        // DB에 저장된 유저별 선호도 정보를 요청
-        .route("/get/userPreferenceInfo", post(get_user_preference_handler))
-        // DB에 저장된 매장 선택 로그를 요청
-        .route("/get/userSelectionLogInfo",get(get_user_selection_log_handler))
-        // DB에 저장된 가격 변동 정보를 요청
-        .route("/get/priceChangeInfo", get(get_price_change_handler));
+        .route("/get/stores/all", get(stores_list_handler))
+        .route("/get/goods/all", get(goods_list_handler))
+        .route("/get/region-codes/all", get(region_codes_list_handler))
+        .route("/get/prices", get(prices_get_handler))
+        .route("/get/user-preferences", post(user_preference_get_handler))
+        .route("/get/user-selection-log",get(user_selection_log_get_handler),)
+        .route("/get/price-change", get(price_change_get_handler));
 
     let update_routes = Router::new()
-        .route("/update/userSelectionLog", post(update_user_selection_log_handler));
-    
-    // 루트 라우터 설정
+        .route("/update/user-selection-log",post(user_selection_log_update_handler));
+
     let app = Router::new()
         .route("/", get(|| async { "OK" }))
         .merge(sync_routes)
@@ -105,8 +97,7 @@ async fn main() {
         .merge(update_routes)
         .layer(cors)
         .with_state(pool.clone());
-    
-    // 서버 실행
+
     tracing::info!("서버가 http://localhost:3000에서 시작되었습니다");
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     axum::serve(listener, app).await.unwrap();

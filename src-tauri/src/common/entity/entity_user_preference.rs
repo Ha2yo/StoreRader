@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use sqlx::prelude::FromRow;
 
-#[derive(Debug, FromRow, Clone)]
+#[derive(Debug, FromRow)]
 pub struct PreferenceEntity {
     pub id: i32,
     pub w_distance: f64,

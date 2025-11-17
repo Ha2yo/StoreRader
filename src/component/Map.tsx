@@ -195,7 +195,7 @@ function Map() {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
 
         // 전체 매장 목록 조회
-        const res = await fetch(`${apiURL}/get/StoreInfo/all`);
+        const res = await fetch(`${apiURL}/get/stores/all`);
         const stores: Store[] = await res.json();
 
         const selectedRegion = localStorage.getItem("selectedRegionCode") || "020000000";
@@ -209,7 +209,7 @@ function Map() {
 
         // 선택된 상품이 있다면 가격 데이터 획득
         if (selectedGoodName) {
-          const priceRes = await fetch(`${apiURL}/get/PriceInfo?good_name=${selectedGoodName}`);
+          const priceRes = await fetch(`${apiURL}/get/prices?good_name=${selectedGoodName}`);
           priceData = await priceRes.json();
           console.log("불러온 가격 데이터:", priceData.length, "개");
 

@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use sqlx::FromRow;
 
-#[derive(Debug, FromRow, Clone)]
+#[derive(Debug, FromRow)]
 pub struct StoreEntity {
     pub id: i32,
     pub store_id: String,
