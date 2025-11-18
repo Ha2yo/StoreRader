@@ -4,10 +4,10 @@
 ***********************************************************/
 
 import React from "react";
-import './App.css';
+import './app/App.css';
 import ReactDOM from "react-dom/client";
 import LocationProvider from "./contexts/LocationContext";
-import Routing from "./Routing";
+import Routing from "./app/Routing";
 import { PreferenceProvider } from "./contexts/PreferenceContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
