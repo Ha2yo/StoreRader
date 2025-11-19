@@ -10,5 +10,12 @@ export function calcEfficiency(
     const priceRatio = price / maxPrice;
     const distanceRatio = distance / maxDistance;
 
-    return w_price * priceRatio + w_distance * distanceRatio;
+    const priceEff = 1 - priceRatio;
+    const distanceEff = 1 - distanceRatio;
+
+    const efficiency = w_price * priceEff + w_distance * distanceEff;
+
+    const score = efficiency * 100;
+    
+    return score
 }

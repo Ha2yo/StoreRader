@@ -145,14 +145,14 @@ export function useStoreData({
 
                     // 각 매장에 대해 점수 계산
                     const scored = validStores.map((store) => {
-                        const matched = priceData.find((p) => p.store_id === store.store_id); // ✅ priceData에서 매칭
+                        const matched = priceData.find((p) => p.store_id === store.store_id);
                         const price = matched?.price ?? maxPrice;
                         const inspect_day = matched?.inspect_day ?? null;
                         const distance = calcDistance(pos.lat, pos.lng, store.x_coord!, store.y_coord!);
                         const score = calcEfficiency(price, distance, maxPrice, maxDistance, w_price, w_distance);
                         return { ...store, price, distance, inspect_day, score };
                     });
-                    scored.sort((a, b) => a.score - b.score);
+                    scored.sort((a, b) => b.score - a.score);
 
                     if (scored.length > 0) {
                         const top = scored[0];
@@ -165,7 +165,7 @@ export function useStoreData({
                     setScoredStores(scored);
 
                     // 점수가 낮은 순(효율 높은 순)으로 정렬
-                    scored.sort((a, b) => a.score - b.score);
+                    scored.sort((a, b) => b.score - a.score);
 
                     // 마커 생성
                     scored.forEach((store, idx) => {
@@ -188,13 +188,13 @@ export function useStoreData({
                         ).openTooltip();
 
                         // 팝업 (상위 5개는 상세, 6등부터는 순위만)
-                        if (idx < 5) {
+
                             if (idx === 0) {
                                 marker.bindTooltip(`
                       <b>추천 매장 (${idx + 1}위)</b><br/>
                       ₩${store.price.toLocaleString()}<br/>
                       ${store.distance.toFixed(2)} km<br/>
-                      효율 점수: ${store.score.toFixed(3)}`,
+                      효율 점수: ${store.score.toFixed(2)}`,
                                     {
                                         permanent: true,
                                         direction: "top",
@@ -208,13 +208,9 @@ export function useStoreData({
                     <b>추천 매장 (${idx + 1}위)</b><br/>
                     ₩${store.price.toLocaleString()}<br/>
                     ${store.distance.toFixed(2)} km<br/>
-                    효율 점수: ${store.score.toFixed(3)}
+                    효율 점수: ${store.score.toFixed(2)}
                   `);
-                        } else {
-                            marker.bindPopup(`
-                    <b>${idx + 1}위 추천 매장</b><br/>
-                    ₩${store.price.toLocaleString()}<br/>`);
-                        }
+                        
                         markersRef.current[store.store_id] = marker;
 
                         // 클릭 시 상세 패널 열기
