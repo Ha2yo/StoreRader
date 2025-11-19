@@ -5,19 +5,35 @@ import { formatDate } from "../utils/formatDate";
 
 export default function PriceChange() {
     const navigate = useNavigate();
-    const { downList, upList } = usePriceChange();
+    const { downList, upList, minCount, setMinCount } = usePriceChange();
     const [tab, setTab] = useState<"down" | "up">("down");
 
     const list = tab === "down" ? downList : upList;
 
     return (
-        <div style={{ padding: 20 }}>
+        <div style={{ padding: 20, paddingBottom: "100px", }}>
 
             {/* 탭 버튼 */}
             <div style={{ display: "flex", gap: 10, marginBottom: 2, justifyContent: "center" }}>
                 <button onClick={() => setTab("down")}>하락 TOP 50</button>
                 <button onClick={() => setTab("up")}>상승 TOP 50</button>
             </div>
+            {/* 슬라이더 UI */}
+            <div style={{ margin: "20px" }}>
+                <label>최소 매장 수: {minCount}개</label>
+                <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={minCount}
+                    onChange={(e) => setMinCount(Number(e.target.value))}
+                    style={{
+                        width: "100%",
+                        height: "30px",
+                    }}
+                />
+            </div>
+
             <br />
             <p style={{
                 textAlign: "left",
@@ -29,6 +45,7 @@ export default function PriceChange() {
                 최근 조사된 가격과 <b> 2주 전 가격</b>을 비교하여 변동 폭이 큰 상품 TOP 50을 보여줍니다.
                 상품을 클릭하면 지도에서 추천 1위 매장을 바로 확인할 수 있습니다.
             </p>
+
             <div style={{
                 textAlign: "center",
                 fontSize: "13px",
