@@ -40,7 +40,12 @@ export default function UserHistoryList({ history }: Props) {
           }}
         >
           <div style={{ fontSize: "12px", color: "#888", marginBottom: "6px" }}>
-            {new Date(item.created_at).toLocaleString()}
+            {(() => {
+              const date = new Date(item.created_at + "Z"); // ← UTC로 인식시키기
+              return date.toLocaleString("ko-KR", {
+                timeZone: "Asia/Seoul",
+              });
+            })()}
           </div>
 
           <div style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "4px" }}>
