@@ -31,14 +31,22 @@ export function useStoreData({
         (async () => {
             try {
 
+
                 // 전체 매장 목록 조회
                 const stores: Store[] = await fetchAllStores();
 
                 const selectedRegion = localStorage.getItem("selectedRegionCode") || "020000000";
                 const selectedDistance = localStorage.getItem("selectedDistance");
-                const selectedGoodName = localStorage.getItem("selectedGoodName");
+                let selectedGoodName =
+                    localStorage.getItem("selectedGoodName") ||
+                    localStorage.getItem("lastSearchTerm");
+
                 const historyFlag = localStorage.getItem("historyFlag");
                 const historyStoreId = localStorage.getItem("historyStoreId");
+
+                if (!historyFlag) {
+                    localStorage.setItem("historyFlag", "0");
+                }
 
                 const pos = loadSavedPosition(); // 사용자 위치
 
@@ -85,7 +93,7 @@ export function useStoreData({
 
 
                 // 사용자가 매장 히스토리를 클릭했을 경우
-                if (historyFlag === "1" && historyStoreId) {
+                if (historyFlag == "1" && historyStoreId) {
                     const target = stores.find((s) => s.store_id === historyStoreId);
 
                     if (target) {

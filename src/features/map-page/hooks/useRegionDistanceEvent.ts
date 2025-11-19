@@ -5,7 +5,9 @@ export function useRegionDistanceEvent() {
 
     // 매장 필터 이벤트 수신 -> renderKey 증가
     useEffect(() => {
-        setRenderKey(1);
+        setRenderKey(0);
+        setRenderKey(prev => prev + 1);
+
         const handleRegionChange = (e: any) => {
             console.log(" 지역 변경 감지됨:", e.detail);
             setRenderKey((prev) => prev + 1);
@@ -25,5 +27,5 @@ export function useRegionDistanceEvent() {
         }
     }, []);
 
-     return renderKey;
+    return renderKey;
 }

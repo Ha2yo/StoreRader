@@ -23,7 +23,6 @@ function Map() {
     const w_price = preference.w_price;
     const w_distance = preference.w_distance;
 
-
     const selectedGoodId = localStorage.getItem("selectedGoodId");
 
     // 1) 지역/거리 변경 이벤트 → renderKey 증가

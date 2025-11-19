@@ -2,8 +2,8 @@ import { Store } from "./Store.types";
 
 export interface Props {
     map: L.Map | null;
-    markersRef: React.MutableRefObject<Record<string, L.Marker>>;
-    circleRef: React.MutableRefObject<L.Circle | null>;
+    markersRef: React.RefObject<Record<string, L.Marker>>;
+    circleRef: React.RefObject<L.Circle | null>;
     renderKey: number;
     w_price: number;
     w_distance: number;
