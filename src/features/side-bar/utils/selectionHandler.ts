@@ -2,7 +2,8 @@ export function applyRegionSelection(regionCode: string) {
   localStorage.setItem("selectedRegionCode", regionCode);
   localStorage.removeItem("selectedDistance");
 
-  window.dispatchEvent(new CustomEvent("regionChange", { detail: regionCode }));
+  window.dispatchEvent(
+    new CustomEvent("regionChange", { detail: regionCode }));
 }
 
 export function applyDistanceSelection(distanceCode: string) {

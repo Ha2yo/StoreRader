@@ -85,6 +85,11 @@ export function useStoreData({
                     if (circleRef.current) map.removeLayer(circleRef.current);
                     filteredStores = stores.filter((s) => s.area_code === selectedRegion);
                     console.log(`지역 코드 ${selectedRegion} 매장 수: ${filteredStores.length}`);
+                } else {
+                    if (circleRef.current) {
+                        map.removeLayer(circleRef.current);
+                        circleRef.current = null;
+                    }
                 }
 
                 // 기존 마커들 전부 제거
@@ -189,28 +194,28 @@ export function useStoreData({
 
                         // 팝업 (상위 5개는 상세, 6등부터는 순위만)
 
-                            if (idx === 0) {
-                                marker.bindTooltip(`
+                        if (idx === 0) {
+                            marker.bindTooltip(`
                       <b>추천 매장 (${idx + 1}위)</b><br/>
                       ₩${store.price.toLocaleString()}<br/>
                       ${store.distance.toFixed(2)} km<br/>
                       효율 점수: ${store.score.toFixed(2)}`,
-                                    {
-                                        permanent: true,
-                                        direction: "top",
-                                        offset: L.point(0, -40),
-                                        className: "price-tooltip top-store",
-                                    }
-                                ).openTooltip();
+                                {
+                                    permanent: true,
+                                    direction: "top",
+                                    offset: L.point(0, -40),
+                                    className: "price-tooltip top-store",
+                                }
+                            ).openTooltip();
 
-                            } else
-                                marker.bindPopup(`
+                        } else
+                            marker.bindPopup(`
                     <b>추천 매장 (${idx + 1}위)</b><br/>
                     ₩${store.price.toLocaleString()}<br/>
                     ${store.distance.toFixed(2)} km<br/>
                     효율 점수: ${store.score.toFixed(2)}
                   `);
-                        
+
                         markersRef.current[store.store_id] = marker;
 
                         // 클릭 시 상세 패널 열기
