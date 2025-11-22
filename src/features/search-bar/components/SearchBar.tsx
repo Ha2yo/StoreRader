@@ -14,64 +14,37 @@ function Search() {
     <>
       {historyFlag !== "1" && (
         <>
-          {/* 상단 여백 */}
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: 30,
-              backgroundColor: "#f8f9fa",
-              zIndex: 999,
-            }}
-          />
-
           {/* 상단 검색바 */}
           <div
-            style={{
-              position: "fixed",
-              top: 30,
-              left: 0,
-              width: "100vw",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "12px 16px",
-              background: "#f8f9fa",
-              zIndex: 1000,
-            }}
+            className="search-bar-map"
+            onClick={() => navigate("/search")}
           >
-            {/* ☰ 버튼 */}
             <button
               style={{
                 all: "unset",
                 fontSize: 25,
-                width: 30,
+                width: 80,
+                height: 50,
                 cursor: "pointer",
                 color: "#333",
-                marginLeft: 10,
+                borderRadius: "25px 8px 8px 25px",
+                // background: "rgba(0,0,0,0.05)",
               }}
-              onClick={() => setIsSidebarOpen(true)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsSidebarOpen(true);
+              }}
             >
-              ☰
+              &nbsp;&nbsp;&nbsp;&nbsp;☰
             </button>
-
             {/* 검색창 */}
             <input
+              className="search-bar-box"
               type="text"
               value={lastSearch}
               onClick={() => navigate("/search")}
               placeholder="상품명을 입력하세요"
               readOnly
-              style={{
-                flex: 1,
-                height: 40,
-                border: "1px solid #ccc",
-                borderRadius: 8,
-                paddingLeft: 12,
-                fontSize: 14,
-              }}
             />
           </div>
         </>

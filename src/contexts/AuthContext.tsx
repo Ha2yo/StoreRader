@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface AuthUser {
-  email: string;
+  name: string,
+  email: string,
+  picture: string;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
-  login: (email: string, jwt: string) => void;
+  login: (name: string, email: string, picture: string, jwt: string) => void;
   logout: () => void;
 }
 
@@ -17,24 +19,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 앱 새로 열 때 JWT 자동 복구
   useEffect(() => {
-    const token = localStorage.getItem("jwt");
+    const jwt = localStorage.getItem("jwt");
+    const name = localStorage.getItem("name");
     const email = localStorage.getItem("email");
-    if (token && email) {
-      setUser({ email });
+    const picture = localStorage.getItem("picture");
+    if (jwt && name && email && picture) {
+      setUser({ name, email, picture });
     }
   }, []);
 
   // 로그인 (email과 jwt 저장)
-  function login(email: string, jwt: string) {
+  function login(name: string, email: string, picture: string, jwt: string) {
     localStorage.setItem("jwt", jwt);
+    localStorage.setItem("name", name);
     localStorage.setItem("email", email);
-    setUser({ email });
+    localStorage.setItem("picture", picture);
+    setUser({ name, email, picture });
   }
 
   // 로그아웃 (JWT 제거)
   function logout() {
     localStorage.removeItem("jwt");
+    localStorage.removeItem("name");
     localStorage.removeItem("email");
+    localStorage.removeItem("picture");
     setUser(null);
   }
 

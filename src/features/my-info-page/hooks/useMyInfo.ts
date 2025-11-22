@@ -14,7 +14,7 @@ export function useMyInfo() {
     const serverRes = await requestBackendLogin(google.idToken!);
 
     if (serverRes.jwt) {
-      login(serverRes.user.email, serverRes.jwt);
+      login(serverRes.user.name, serverRes.user.email, serverRes.user.picture, serverRes.jwt);
     }
   }
 

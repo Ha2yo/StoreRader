@@ -17,6 +17,8 @@ const distances = [
 ]
 
 function Sidebar({ onClose }: SidebarProps) {
+  const [closing, setClosing] = useState(false);
+
   const [showRegionList, setShowRegionList] = useState(false);
   const [showDistanceList, setShowDistanceList] = useState(false);
 
@@ -28,6 +30,12 @@ function Sidebar({ onClose }: SidebarProps) {
     localStorage.getItem("selectedDistance") || null
   );
 
+  const handleClose = () => {
+    setClosing(true);
+    setTimeout(() => {
+      onClose();
+    }, 250);
+  };
   // 초기 기본값 설정
   useEffect(() => {
     if (!localStorage.getItem("selectedRegionCode")) {
@@ -37,163 +45,183 @@ function Sidebar({ onClose }: SidebarProps) {
 
   const regions = useRegions();
 
-const handleRegionSelect = (regionCode: string) => {
-  setSelectedRegion(regionCode);
-  setSelectedDistance(null);
+  const handleRegionSelect = (regionCode: string) => {
+    setSelectedRegion(regionCode);
+    setSelectedDistance(null);
 
-  applyRegionSelection(regionCode);
-  onClose();
-};
+    applyRegionSelection(regionCode);
+    onClose();
+  };
 
-const handleDistanceSelect = (distanceCode: string) => {
-  setSelectedDistance(distanceCode);
-  setSelectedRegion("020000000");
+  const handleDistanceSelect = (distanceCode: string) => {
+    setSelectedDistance(distanceCode);
+    setSelectedRegion("020000000");
 
-  applyDistanceSelection(distanceCode);
-  onClose();
-};
+    applyDistanceSelection(distanceCode);
+    onClose();
+  };
 
   // 렌더링
   return (
     <>
       {/* 오버레이 */}
       <div
-        onClick={onClose}
+        onClick={handleClose}
         style={{
           position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          background: "rgba(0, 0, 0, 0.4)",
+          inset: 0,
+          background: "rgba(0,0,0,0.35)",
+          backdropFilter: "blur(2px)",
           zIndex: 1500,
         }}
       />
 
       {/* 사이드바 본체 */}
       <div
+        className={closing ? "sidebar sidebar-close" : "sidebar sidebar-open"}
         style={{
           position: "fixed",
           top: 0,
           left: 0,
-          width: "250px",
+          width: "70vw",
           height: "100vh",
-          background: "#ffffff",
-          boxShadow: "2px 0 6px rgba(0,0,0,0.2)",
+          background: "#fff",
+          borderTopRightRadius: 20,
+          borderBottomRightRadius: 20,
+          boxShadow: "4px 0 14px rgba(0,0,0,0.15)",
           zIndex: 2500,
           display: "flex",
           flexDirection: "column",
-          padding: "20px",
-          animation: "slideIn 0.3s ease-out",
           overflowY: "auto",
-          paddingBottom: "80px",
+          paddingBottom: "90px",
         }}
       >
-        {/* 닫기 버튼 */}
-        <button
-          onClick={onClose}
+        {/* 헤더 */}
+        <div
           style={{
-            all: "unset",
-            position: "absolute",
-            fontSize: 25,
-            top: 30,
-            right: 16,
-            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "50px 18px 12px",
           }}
         >
-          ✕
-        </button>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
+            매장 필터링
+          </h2>
 
-        {/* 섹션 제목 */}
-        <h3 style={{ marginTop: 60 }}>매장 필터링</h3>
+          <button
+            onClick={handleClose}
+            style={{
+              all: "unset",
+              fontSize: 26,
+              cursor: "pointer",
+              padding: "6px",
+              borderRadius: 8,
+            }}
+          >
+            ✕
+          </button>
+        </div>
 
-        {/* 지역 토글 버튼 */}
-        <button
+        {/* 탭 */}
+        <div
           style={{
-            border: "none",
-            background: "none",
-            fontSize: 16,
-            textAlign: "left",
-            padding: "8px 0",
-            cursor: "pointer",
+            display: "flex",
+            gap: 10,
+            padding: "10px 18px",
           }}
-          onClick={() => setShowRegionList((prev) => !prev)}
         >
-          지역
-          <span style={{ fontSize: 14, color: "#555" }}>
-          </span>
-        </button>
+          <button
+            onClick={() => {
+              setShowRegionList(true);
+              setShowDistanceList(false);
+            }}
+            style={{
+              flex: 1,
+              padding: "12px 0",
+              borderRadius: 10,
+              border: "none",
+              fontSize: 15,
+              fontWeight: showRegionList ? 700 : 500,
+              background: showRegionList ? "#007aff" : "#f1f3f5",
+              color: showRegionList ? "#fff" : "#333",
+            }}
+          >
+            지역
+          </button>
 
-        {/* 하위 지역 리스트 */}
+          <button
+            onClick={() => {
+              setShowDistanceList(true);
+              setShowRegionList(false);
+            }}
+            style={{
+              flex: 1,
+              padding: "12px 0",
+              borderRadius: 10,
+              border: "none",
+              fontSize: 15,
+              fontWeight: showDistanceList ? 700 : 500,
+              background: showDistanceList ? "#007aff" : "#f1f3f5",
+              color: showDistanceList ? "#fff" : "#333",
+
+            }}
+          >
+            거리
+          </button>
+        </div>
+
+        {/* 지역 선택 */}
         {showRegionList && (
-          <div style={{ marginLeft: 10, marginTop: 5 }}>
-            {regions.map((region) => (
+          <div style={{ padding: "0 18px", marginTop: 6 }}>
+            {regions.map((r) => (
               <button
-                key={region.code}
-                onClick={() => handleRegionSelect(region.code)}
+                key={r.code}
+                onClick={() => handleRegionSelect(r.code)}
                 style={{
-                  display: "block",
                   width: "100%",
-                  border: "none",
-                  background: "#f8f9fa",
-                  borderRadius: 6,
-                  padding: "8px 10px",
-                  marginBottom: 4,
                   textAlign: "left",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  backgroundColor:
-                    selectedRegion === region.code ? "#007bff" : "#f8f9fa",
-                  color: selectedRegion === region.code ? "#fff" : "#000",
-                  fontWeight: selectedRegion === region.code ? "bold" : "normal",
-                  transition: "background-color 0.2s",
+                  background: selectedRegion === r.code ? "#e8f0fe" : "#fff",
+                  padding: "14px 16px",
+                  marginBottom: 8,
+                  borderRadius: 12,
+                  border: "1px solid #eee",
+                  fontSize: 15,
+                  fontWeight: selectedRegion === r.code ? 700 : 500,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                  transition: "0.15s",
                 }}
               >
-                {region.name}
+                {r.name}
               </button>
             ))}
           </div>
         )}
 
-        {/* 거리 필터 */}
-        <button
-          style={{
-            border: "none",
-            background: "none",
-            fontSize: 16,
-            textAlign: "left",
-            padding: "8px 0",
-            cursor: "pointer",
-          }}
-          onClick={() => setShowDistanceList((prev) => !prev)}
-        >
-          거리
-        </button>
-
+        {/* 거리 선택 */}
         {showDistanceList && (
-          <div style={{ marginLeft: 10, marginTop: 5 }}>
-            {distances.map((distance) => (
+          <div style={{ padding: "0 18px", marginTop: 6 }}>
+            {distances.map((d) => (
               <button
-                key={distance.code}
-                onClick={() => handleDistanceSelect(distance.code)}
+                key={d.code}
+                onClick={() => handleDistanceSelect(d.code)}
                 style={{
-                  display: "block",
                   width: "100%",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: "8px 10px",
-                  marginBottom: 4,
                   textAlign: "left",
-                  cursor: "pointer",
-                  fontSize: 14,
-                  backgroundColor:
-                    selectedDistance === distance.code ? "#007bff" : "#f8f9fa",
-                  color: selectedDistance === distance.code ? "#fff" : "#000",
+                  background:
+                    selectedDistance === d.code ? "#e8f0fe" : "#fff",
+                  padding: "14px 16px",
+                  marginBottom: 8,
+                  borderRadius: 12,
+                  border: "1px solid #eee",
+                  fontSize: 15,
                   fontWeight:
-                    selectedDistance === distance.code ? "bold" : "normal",
+                    selectedDistance === d.code ? 700 : 500,
+                  boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                  transition: "0.15s",
                 }}
               >
-                {distance.name}
+                {d.name}
               </button>
             ))}
           </div>

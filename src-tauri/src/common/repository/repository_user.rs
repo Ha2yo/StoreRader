@@ -74,6 +74,37 @@ pub async fn update_last_login(
     Ok(())
 }
 
+/// 사용자의 이름(name)을 최신 Google OAuth 정보로 갱신한다.
+///
+/// # Arguments
+/// * `pool` - DB 커넥션 풀
+/// * `sub`  - Google OAuth 고유 식별자
+/// * `new_name` - Google 계정에서 가져온 최신 이름
+///
+/// # Returns
+/// * `Ok(())`      - 갱신 성공
+/// * `Err(String)` - 갱신 실패
+pub async fn update_user_name(
+    pool: &PgPool,
+    sub: &str,
+    new_name: &str,
+) -> Result<(), String> {
+    sqlx::query(
+        r#"
+        UPDATE users 
+        SET name = $1
+        WHERE sub = $2
+        "#,
+    )
+    .bind(new_name)
+    .bind(sub)
+    .execute(pool)
+    .await
+    .map_err(|e| format!("이름 업데이트 실패: {}", e))?;
+
+    Ok(())
+}
+
 /// 신규 사용자를 생성한다.
 /// 
 /// # Arguments

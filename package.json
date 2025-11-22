@@ -10,12 +10,18 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
+    "@chakra-ui/react": "^3.29.0",
     "@choochmeque/tauri-plugin-google-auth-api": "^0.3.3",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.5",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-geolocation": "^2.3.2",
     "@tauri-apps/plugin-opener": "^2.5.2",
     "@tauri-apps/plugin-shell": "^2.3.3",
     "bootstrap": "^5.3.8",
+    "framer-motion": "^12.23.24",
     "leaflet": "^1.9.4",
     "leaflet.locatecontrol": "^0.85.1",
     "react": "^19.2.0",

@@ -31,7 +31,7 @@ function Routing() {
                         <Route path='/' element={<Home />} />
                         <Route path='/home' element={<Home />} />
                         <Route path='/map' element={<MapPage />} />
-                        <Route path='/mypage' element={<MyPage />} />
+                        <Route path='/myInfo' element={<MyPage />} />
                         <Route path='/search' element={<SearchPage />} />
                     </Routes>
                 </BrowserRouter>

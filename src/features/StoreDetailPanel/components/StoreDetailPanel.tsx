@@ -5,6 +5,7 @@ import { calcDistance } from "../../../utils/calcDistance";
 import { loadSavedPosition } from "../../../utils/loadSavedPos";
 import { determinePreferenceType } from "../utils/determinePrefType";
 import { logUserSelection } from "../utils/logUserSelection";
+import { touchEffect } from "../utils/touchEffect";
 
 function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
@@ -24,56 +25,74 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                     left: "0",
                     width: "100%",
                     background: "#fff",
-                    borderTopLeftRadius: "16px",
-                    borderTopRightRadius: "16px",
-                    boxShadow: "0 -4px 10px rgba(0,0,0,0.2)",
-                    padding: "16px",
-                    paddingBottom: "calc(env(safe-area-inset-bottom) + 16px)",
-                    zIndex: 2000,
-                    maxHeight: "100vh",
+                    borderTopLeftRadius: "20px",
+                    borderTopRightRadius: "20px",
+                    boxShadow: "0 -4px 12px rgba(0,0,0,0.15)",
+                    padding: "20px 20px 30px 20px",
+                    paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)",
+                    zIndex: 2000
                 }}
             >
                 {/* 매장 기본 정보 */}
-                <h3 style={{ margin: "0 0 8px 0" }}>{store.store_name}</h3>
-                <p>{store.road_addr}</p>
-                <p>{store.jibun_addr}</p>
-                <p>📞 {store.tel_no ?? "전화번호 없음"}</p>
+                <h3 style={{ fontSize: "20px", fontWeight: "bold", marginBottom: "10px" }}>{store.store_name}</h3>
+                <p style={{ fontSize: "15px", color: "#777", marginBottom: "4px" }}>{store.road_addr}</p>
+                <p style={{ fontSize: "14px", color: "#777", marginBottom: "14px" }}>{store.jibun_addr}</p>
+                <p style={{
+                    display: "flex",
+                    alignItems: "center",
+                    fontSize: "14px",
+                    color: "#555",
+                    marginBottom: "10px"
+                }}>📞 {store.tel_no ?? "전화번호 없음"}</p>
 
                 {distanceKm && (
-                    <p>{distanceKm} km</p>
+                    <p style={{
+                        display: "flex",
+                        alignItems: "center",
+                        fontSize: "14px",
+                        color: "#555",
+                        marginBottom: "22px"
+                    }}>{distanceKm} km</p>
                 )}
 
-                {/* 길찾기 버튼 */}
-                <button
-                    style={{
-                        flex: 1,
-                        padding: "10px",
-                        background: "#28a745",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "8px",
-                        fontSize: "16px",
-                    }}
-                    onClick={() => setIsRouteModalOpen(true)}
-                >
-                    길찾기
-                </button>
-                {/* 닫기 버튼 */}
-                <button
-                    style={{
-                        flex: 1,
-                        padding: "10px",
-                        background: "#007bff",
-                        color: "#fff",
-                        border: "none",
-                        borderRadius: "8px",
-                        fontSize: "16px",
-                        marginLeft: "10px"
-                    }}
-                    onClick={onClose}
-                >
-                    닫기
-                </button>
+                <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
+                    {/* 길찾기 버튼 */}
+                    <button
+                        {...touchEffect}
+                        style={{
+                            flex: 1,
+                            background: "#3182F6",
+                            color: "#fff",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                            padding: "12px 0",
+                            borderRadius: "12px",
+                            border: "none",
+                            fontSize: "16px",
+                            fontWeight: "bold"
+                        }}
+                        onClick={() => setIsRouteModalOpen(true)}
+                    >
+                        길찾기
+                    </button>
+                    {/* 닫기 버튼 */}
+                    <button
+                        {...touchEffect}
+                        style={{
+                            flex: 1,
+                            background: "#F3F4F6",
+                            color: "#555",
+                            textShadow: "0 1px 1px rgba(0,0,0,0.05)",
+                            padding: "12px 0",
+                            borderRadius: "12px",
+                            border: "none",
+                            fontSize: "16px",
+                            fontWeight: "bold"
+                        }}
+                        onClick={onClose}
+                    >
+                        닫기
+                    </button>
+                </div>
 
             </div>
 
@@ -86,7 +105,8 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                         left: 0,
                         width: "100vw",
                         height: "100vh",
-                        backgroundColor: "rgba(0, 0, 0, 0.4)",
+                        backgroundColor: "rgba(0, 0, 0, 0.45)",
+                        backdropFilter: "blur(1px)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -98,87 +118,132 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                         onClick={(e) => e.stopPropagation()}
                         style={{
                             background: "#fff",
-                            borderRadius: "12px",
-                            padding: "20px",
-                            width: "80%",
-                            maxWidth: "360px",
+                            borderRadius: "20px",
+                            padding: "24px 20px",
+                            width: "85%",
+                            maxWidth: "380px",
                             textAlign: "center",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                            boxShadow: "0 8px 28px rgba(0,0,0,0.18)",
                         }}
                     >
-                        <h3>길찾기 앱 선택</h3>
-
-                        {/* 네이버 지도 */}
-                        <button
+                        <h3
                             style={{
-                                width: "100%",
-                                padding: "12px",
-                                marginTop: "12px",
-                                background: "#2DB400",
-                                color: "#fff",
-                                border: "none",
-                                borderRadius: "8px",
-                                fontSize: "16px",
-                            }}
-                            onClick={async () => {
-                                if (store.x_coord && store.y_coord) {
-                                    const slat = pos.lat;
-                                    const slng = pos.lng;
-                                    const sname = encodeURIComponent("내 위치");
-                                    const dlat = store.x_coord;
-                                    const dlng = store.y_coord;
-                                    const dname = encodeURIComponent(store.store_name);
-                                    const naverMApUrl = `nmap://route/public?slat=${slat}&slng=${slng}&sname=${sname}&dlat=${dlat}&dlng=${dlng}&dname=${dname}&appname=com.ik9014.storerader`
-                                    await openUrl(naverMApUrl);
+                                margin: 0,
+                                marginBottom: "20px",
+                                fontSize: "18px",
+                                fontWeight: 600
+                            }}>
+                            길찾기 앱 선택</h3>
 
-                                    const preferenceType = determinePreferenceType(store, candidates);
-                                    await logUserSelection(store, goodId, preferenceType);
-                                }
+                        {/* 버튼들 담는 컨테이너 */}
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                gap: "14px",
                             }}
                         >
-                            네이버 지도 길찾기
-                        </button>
+                            {/* 네이버 지도 */}
+                            <button
+                                {...touchEffect}
+                                style={{
+                                    flex: 1,
+                                    aspectRatio: "1",
+                                    borderRadius: "14px",
+                                    background: "#fff",
+                                    border: "none",
+                                    boxShadow: "none",
+                                    color: "#fff",
+                                    fontSize: "15px",
+                                    fontWeight: 600,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                                onClick={async () => {
+                                    if (store.x_coord && store.y_coord) {
+                                        const slat = pos.lat;
+                                        const slng = pos.lng;
+                                        const sname = encodeURIComponent("내 위치");
+                                        const dlat = store.x_coord;
+                                        const dlng = store.y_coord;
+                                        const dname = encodeURIComponent(store.store_name);
+                                        const naverMApUrl = `nmap://route/public?slat=${slat}&slng=${slng}&sname=${sname}&dlat=${dlat}&dlng=${dlng}&dname=${dname}&appname=com.ik9014.storerader`
+                                        await openUrl(naverMApUrl);
 
-                        {/* 카카오맵 */}
-                        <button
-                            style={{
-                                width: "100%",
-                                padding: "12px",
-                                marginTop: "10px",
-                                background: "#FEE500",
-                                color: "#3C1E1E",
-                                border: "none",
-                                borderRadius: "8px",
-                                fontSize: "16px",
-                            }}
-                            onClick={async () => {
-                                if (store.x_coord && store.y_coord) {
-                                    const slat = pos.lat;
-                                    const slng = pos.lng;
-                                    const sname = encodeURIComponent("내 위치");
-                                    const dlat = store.x_coord;
-                                    const dlng = store.y_coord;
-                                    const dname = encodeURIComponent(store.store_name);
-                                    const kakaoMapUrl = `https://map.kakao.com/link/from/${sname},${slat},${slng}/to/${dname},${dlat},${dlng}`;
-                                    await openUrl(kakaoMapUrl);
+                                        const preferenceType = determinePreferenceType(store, candidates);
+                                        await logUserSelection(store, goodId, preferenceType);
+                                    }
+                                }}
+                            >
+                                <img
+                                    src="/navermap.png"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        borderRadius: "20%",
+                                    }} />
+                            </button>
 
-                                    const preferenceType = determinePreferenceType(store, candidates);
-                                    await logUserSelection(store, goodId, preferenceType);
-                                }
-                            }}
-                        >
-                            카카오맵 길찾기
-                        </button>
+                            {/* 카카오맵 */}
+                            <button
+                                {...touchEffect}
+                                style={{
+                                    flex: 1,
+                                    aspectRatio: "1",
+                                    borderRadius: "14px",
+                                    background: "#fff",
+                                    border: "none",
+                                    boxShadow: "none",
+                                    color: "#3A1D1D",
+                                    fontSize: "15px",
+                                    fontWeight: 600,
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                }}
+                                onClick={async () => {
+                                    if (store.x_coord && store.y_coord) {
+                                        const slat = pos.lat;
+                                        const slng = pos.lng;
+                                        const sname = encodeURIComponent("내 위치");
+                                        const dlat = store.x_coord;
+                                        const dlng = store.y_coord;
+                                        const dname = encodeURIComponent(store.store_name);
+                                        const kakaoMapUrl = `https://map.kakao.com/link/from/${sname},${slat},${slng}/to/${dname},${dlat},${dlng}`;
+                                        await openUrl(kakaoMapUrl);
 
+                                        const preferenceType = determinePreferenceType(store, candidates);
+                                        await logUserSelection(store, goodId, preferenceType);
+                                    }
+                                }}
+                            >
+                                <img
+                                    src="/kakaomap.png"
+                                    style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        objectFit: "cover",
+                                        borderRadius: "20%",
+                                    }} />
+                            </button>
+
+
+                        </div>
                         {/* 취소 버튼 */}
                         <button
+                            {...touchEffect}
                             style={{
-                                marginTop: "16px",
+                                marginTop: "20px",
                                 width: "100%",
-                                padding: "10px",
-                                borderRadius: "8px",
-                                border: "1px solid #ccc",
-                                background: "#fff",
+                                padding: "14px",
+                                borderRadius: "14px",
+                                background: "#f5f5f5",
+                                border: "none",
+                                color: "#333",
+                                fontSize: "16px",
+                                fontWeight: 500,
                             }}
                             onClick={() => setIsRouteModalOpen(false)}
                         >

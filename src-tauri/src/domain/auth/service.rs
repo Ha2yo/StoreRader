@@ -29,7 +29,7 @@ use sqlx::PgPool;
 
 use crate::{
     common::repository::{
-        repository_user::{create_user, find_user_by_sub, update_last_login},
+        repository_user::{create_user, find_user_by_sub, update_last_login, update_user_name},
         repository_user_preference::create_default_preference,
     },
     config::env::get_env_value,
@@ -63,6 +63,11 @@ pub async fn auth_google(
         Ok(mut existing_user) => {
             update_last_login(pool, &claims.sub).await?;
             existing_user.last_login = chrono::Utc::now().naive_utc();
+
+            if existing_user.name != claims.name {
+            update_user_name(pool, &claims.sub, &claims.name).await?;
+            existing_user.name = claims.name.clone();
+        }
             existing_user
         }
         Err(_) => {
@@ -81,6 +86,7 @@ pub async fn auth_google(
             id: user.id,
             name: user.name,
             email: user.email,
+            picture: claims.picture,
         },
     };
 

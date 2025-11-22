@@ -187,7 +187,7 @@ export function useStoreData({
                             {
                                 permanent: true,
                                 direction: "top",
-                                offset: L.point(0, -40),
+                                offset: L.point(0, -30),
                                 className: "price-tooltip",
                             }
                         ).openTooltip();
@@ -196,15 +196,14 @@ export function useStoreData({
 
                         if (idx === 0) {
                             marker.bindTooltip(`
-                      <b>추천 매장 (${idx + 1}위)</b><br/>
-                      ₩${store.price.toLocaleString()}<br/>
-                      ${store.distance.toFixed(2)} km<br/>
-                      효율 점수: ${store.score.toFixed(2)}`,
+                                <b>추천 매장 (${idx + 1}위)</b><br/>
+                                ₩${store.price.toLocaleString()}<br/>
+                                ${store.distance.toFixed(2)} km<br/>
+                                효율 점수: ${store.score.toFixed(2)}`,
                                 {
                                     permanent: true,
                                     direction: "top",
-                                    offset: L.point(0, -40),
-                                    className: "price-tooltip top-store",
+                                    offset: L.point(0, -30),
                                 }
                             ).openTooltip();
 
@@ -213,8 +212,12 @@ export function useStoreData({
                     <b>추천 매장 (${idx + 1}위)</b><br/>
                     ₩${store.price.toLocaleString()}<br/>
                     ${store.distance.toFixed(2)} km<br/>
-                    효율 점수: ${store.score.toFixed(2)}
-                  `);
+                    효율 점수: ${store.score.toFixed(2)}`,
+                    {
+                                    offset: L.point(0, -15),
+                                }
+                
+                    );
 
                         markersRef.current[store.store_id] = marker;
 
@@ -233,7 +236,6 @@ export function useStoreData({
 
                     });
                 }
-
             } catch (err) {
                 console.error("매장 데이터 불러오기 실패:", err);
             }

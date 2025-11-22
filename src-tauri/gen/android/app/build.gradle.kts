@@ -27,7 +27,7 @@ android {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
     }
 
-    // ✅ keystore.properties 로드 (필수)
+    // keystore.properties 로드 (필수)
     val keystorePropertiesFile = rootProject.file("keystore.properties")
     val keystoreProperties = Properties()
     if (!keystorePropertiesFile.exists()) {
@@ -65,7 +65,7 @@ android {
         }
     }
 
-    // ✅ packaging 은 buildTypes 안이 아니라 android 블록 바로 아래 (전역)
+    // packaging 은 buildTypes 안이 아니라 android 블록 바로 아래 (전역)
     packaging {
         jniLibs {
             // Tauri가 생성하는 각 아키텍처 so 심볼 유지 (디버깅 편의)
@@ -78,7 +78,7 @@ android {
         }
     }
 
-    // ✅ JDK 17로 명시 (Kotlin의 JDK 24 fallback 경고 제거)
+    // JDK 17로 명시 (Kotlin의 JDK 24 fallback 경고 제거)
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

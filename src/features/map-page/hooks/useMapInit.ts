@@ -4,13 +4,13 @@ import { loadSavedPosition } from "../../../utils/loadSavedPos";
 
 export function useMapInit(
     mapRef: React.RefObject<HTMLDivElement | null>,
-  leafletMap: React.MutableRefObject<L.Map | null>
+    leafletMap: React.MutableRefObject<L.Map | null>
 ) {
     // 지도 초기화 (최초 1회)
     useEffect(() => {
         if (!mapRef.current || leafletMap.current) return;
 
-        const map = L.map(mapRef.current, { zoomControl: false });
+        const map = L.map(mapRef.current, { zoomControl: false, attributionControl: false, });
         leafletMap.current = map;
 
         // 타일 레이어 추가

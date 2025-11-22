@@ -11,6 +11,7 @@ pub struct UserRes {
     pub id: i32,
     pub name: String,
     pub email: String,
+    pub picture: String,
 }
 
 /// Google 로그인 처리 결과로 반환되는 응답 DTO

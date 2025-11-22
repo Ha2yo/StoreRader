@@ -1,26 +1,33 @@
 import { useEffect } from "react";
 import L from "leaflet";
 import { loadSavedPosition } from "../../../utils/loadSavedPos";
-import { blueIcon } from "../utils/markerIcon";
+import { userIcon } from "../utils/userIcon";
 
 export function useUserLocation(
     leafletMap: React.MutableRefObject<L.Map | null>,
-    markerRef: React.MutableRefObject<L.Marker | null>) {
-    // 사용자 위치 마커 갱신
+    markerRef: React.MutableRefObject<L.Layer | null>
+) {
     useEffect(() => {
         const map = leafletMap.current!;
+        if (!map) return;
+
         const refreshMarker = () => {
             const pos = loadSavedPosition();
             if (!pos) return;
 
-            // 기존 마커 제거 후 새로 표시
+            // 기존 마커 제거
             if (markerRef.current) map.removeLayer(markerRef.current);
-            markerRef.current = L.marker([pos.lat, pos.lng], { icon: blueIcon }).addTo(map);
+
+            markerRef.current = L.marker([pos.lat, pos.lng], {
+                icon: userIcon,
+                zIndexOffset: 9999,
+            }).addTo(map);
         };
 
-        // 즉시 1회 실행 + 5초마다 반복
+        // 즉시 1회 실행 + 반복
         refreshMarker();
         const id = setInterval(refreshMarker, 5000);
+
         return () => clearInterval(id);
     }, []);
 }

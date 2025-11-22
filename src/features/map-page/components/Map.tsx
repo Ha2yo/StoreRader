@@ -9,11 +9,12 @@ import { useRegionDistanceEvent } from "../hooks/useRegionDistanceEvent";
 import { useStoreData } from "../hooks/useStoreData";
 import { useUserLocation } from "../hooks/useUserLocation";
 import { recenterMap } from "../utils/recenterMap";
+import { useZoomScale } from "../hooks/useZoomScale";
 
 function Map() {
     const mapRef = useRef<HTMLDivElement>(null);
     const leafletMap = useRef<L.Map | null>(null);
-    const markerRef = useRef<L.Marker | null>(null);
+    const markerRef = useRef<L.Layer | null>(null);
     const circleRef = useRef<L.Circle | null>(null);
     const markersRef = useRef<Record<string, L.Marker>>({});
 
@@ -42,6 +43,8 @@ function Map() {
         setSelectedStore,
     });
 
+    useZoomScale(leafletMap.current);
+
     // 4) 사용자 위치 마커 갱신
     useUserLocation(leafletMap, markerRef);
 
@@ -56,7 +59,7 @@ function Map() {
                 onClick={recenterMap(leafletMap)}
                 style={{
                     position: "absolute",
-                    bottom: "120px",
+                    bottom: "160px",
                     right: "20px",
                     zIndex: 1000,
                     backgroundColor: "#fff",
@@ -67,13 +70,35 @@ function Map() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: "22px",
                     cursor: "pointer",
                     boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
                 }}
                 title="내 위치로 이동"
             >
-                🧭
+                <svg
+                    width="34"
+                    height="34"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#007AFF"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{ transform: "scale(2.8)" }}
+                >
+                    <path d="M12 3v2M12 19v2M5 12H3M21 12h-2" />
+                    {/* 바깥 원 */}
+                    <circle cx="12" cy="12" r="8" />
+
+                    {/* 중앙 점 */}
+                    <circle cx="12" cy="12" r="3" fill="#007AFF" />
+
+                    {/* 십자 가이드*/}
+                    <line x1="12" y1="2" x2="12" y2="5" />
+                    <line x1="12" y1="19" x2="12" y2="22" />
+                    <line x1="2" y1="12" x2="5" y2="12" />
+                    <line x1="19" y1="12" x2="22" y2="12" />
+                </svg>
             </button>
 
             {/* 매장 상세 정보 패널 */}

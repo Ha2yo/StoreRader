@@ -7,7 +7,7 @@ function Search() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const goods = useGoods();
-const { searchTerm, setSearchTerm } = useSearchTerm();
+  const { searchTerm, setSearchTerm } = useSearchTerm();
 
   const navigate = useNavigate();
 
@@ -27,31 +27,52 @@ const { searchTerm, setSearchTerm } = useSearchTerm();
 
   return (
     <div
+      className="search-page"
       style={{
+
         padding: "15px",
         backgroundColor: "#fff",
         height: "100vh",
         boxSizing: "border-box",
+        zIndex: 30,
       }}
     >
+      {/* 상단 여백 */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: 110,
+          //backgroundColor: "#18232dff",
+          backgroundColor: "#ffffffff",
+          zIndex: 999,
+        }}
+      />
       <input
+        className="search-bar-search"
         ref={inputRef}
         type="text"
         placeholder="상품명을 입력하세요"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
-        style={{
-          width: "100%",
-          marginTop: "20px",
-        }}
       />
 
-      <ul style={{ listStyle: "none", padding: 0, maxHeight: "70vh", overflowY: "auto" }}>
+      <ul
+        className="search-box"
+        style={{
+          listStyle: "none",
+          padding: 0,
+          paddingTop: "70px",
+          maxHeight: "80vh",
+          overflowY: "auto"
+        }}>
         {filteredGoods.map((g, index) => (
           <li
             key={index}
             style={{
-              padding: "8px 5px",
+              padding: "15px 5px",
               borderBottom: "1px solid #eee",
               cursor: "pointer",
             }}
