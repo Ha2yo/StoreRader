@@ -1,42 +1,51 @@
-/***********************************************************
- Routing.tsx는 StoreRader 프론트엔드의 라우팅 구조를 정의하고,
- AuthProvider를 적용하는 역할을 담당한다
-
- 1. AuthProvider
-    - 전역 인증 상태 관리 (로그인 정보, 사용자 세션 등)
-
- 2. Navigation
-    - 공통 내비게이션 바 렌더링
-
- 3. 라우터 구성
-    - "/" -> App (메인 화면)
-    - "/home" -> Home (검색/메인 기능 화면)
-    - "/mypage" -> MyPage (사용자 정보 및 계정 관리 화면)
-***********************************************************/
-
-import Home from '../pages/Home';
+import Home from '../pages/Home.tsx';
 import MyPage from '../pages/MyInfo.tsx';
 import MapPage from '../pages/Map.tsx';
 import SearchPage from '../pages/Search.tsx'
+import MaintenancePage from "../features/status/components/MaintenencePage.tsx";
 import Navigation from './Navigation';
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "../contexts/AuthContext.tsx";
+import { useRouteStatusCheck } from '../features/status/hooks/useRouteStatusCheck.ts';
+import { NetworkAlertPopup } from '../features/status/components/NetworkAlertPopup.tsx';
+import App from './App.tsx';
+
 function Routing() {
     return (
         <AuthProvider>
-            <div>
-                <BrowserRouter>
-                    <Navigation />
-                    <Routes>
-                        <Route path='/' element={<Home />} />
-                        <Route path='/home' element={<Home />} />
-                        <Route path='/map' element={<MapPage />} />
-                        <Route path='/myInfo' element={<MyPage />} />
-                        <Route path='/search' element={<SearchPage />} />
-                    </Routes>
-                </BrowserRouter>
-            </div>
+            <BrowserRouter>
+                <RoutingContents />
+            </BrowserRouter>
         </AuthProvider>
+    );
+}
+
+function RoutingContents() {
+    const { networkPopup, setNetworkPopup, online } = useRouteStatusCheck();
+
+
+    const location = useLocation();
+    const hideNav = location.pathname === "/maintenance" || location.pathname === "/";
+
+    return (
+        <>
+            <NetworkAlertPopup
+                visible={networkPopup}
+                onRetry={() => {
+                    if (online) setNetworkPopup(false);
+                }}
+            />
+            {!hideNav && <Navigation />}
+
+            <Routes>
+                <Route path='/' element={<App />} />
+                <Route path='/home' element={<Home />} />
+                <Route path='/map' element={<MapPage />} />
+                <Route path='/myInfo' element={<MyPage />} />
+                <Route path='/search' element={<SearchPage />} />
+                <Route path='/maintenance' element={<MaintenancePage />} />
+            </Routes>
+        </>
     );
 }
 

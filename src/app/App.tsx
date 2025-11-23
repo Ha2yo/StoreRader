@@ -3,20 +3,35 @@
 ***********************************************************/
 
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useNetworkStatus } from "../features/status/hooks/useNetworkCheck";
+import { checkServerHealth } from "../features/status/api/checkServerHealth";
 
 function App() {
-  console.log('메인 화면 로딩');
-  useEffect(() => {
-    localStorage.removeItem("lastSearchTerm");
-    localStorage.removeItem("selectedGoodName");
-  }, []);
-  
-  return (
-    <div className='container'>
-      <h1>StoreRader</h1>
-      
-    </div>
-  );
+    const navigate = useNavigate();
+    const online = useNetworkStatus();
+
+    useEffect(() => {
+        const tryNavigate = async () => {
+            // 네트워크 OFF -> 홈 이동 금지
+            if (!online) return;
+
+            // 서버 상태 체크
+            const status = await checkServerHealth();
+            if (status === "ok") {
+                localStorage.removeItem("lastSearchTerm");
+                localStorage.removeItem("selectedGoodName");
+                navigate("/home");
+            }
+        };
+
+        tryNavigate();  
+    }, [online]);
+
+    return (
+        <div className='container'>
+        </div>
+    );
 }
 
 export default App;
