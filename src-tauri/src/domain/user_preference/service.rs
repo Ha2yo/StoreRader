@@ -15,8 +15,7 @@ use crate::{
     common::{
         entity::entity_user_preference::PreferenceEntity,
         repository::repository_user_preference::find_preference_by_user_id,
-    },
-    domain::auth::service::decode_jwt,
+    }, config::env::get_env_value, domain::auth::service::decode_jwt
 };
 
 /// 로그인된 사용자의 가격/거리 가중치를 조회한다.
@@ -43,4 +42,11 @@ pub async fn get_user_preference(
         .map_err(|e| format!("선호도 조회 실패: {}", e))?;
 
     Ok(pref)
+}
+
+pub async fn get_preference_threshold() -> Result<f64, String> {
+    let val = get_env_value("PREFERENCE_THRESHOLD");
+
+    val.parse::<f64>()
+        .map_err(|_| "Invalid PREFERENCE_THRESHOLD".to_string())
 }

@@ -10,3 +10,8 @@ pub struct PreferenceRes {
     pub w_price: f64,
     pub w_distance: f64,
 }
+
+#[derive(Serialize)]
+pub struct ThresholdRes {
+    pub threshold: f64,
+}

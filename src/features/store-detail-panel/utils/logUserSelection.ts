@@ -23,7 +23,7 @@ export async function logUserSelection(store: Store, goodId: string | null, pref
             preference_type: preferenceType,
 
         };
-        console.log("서버 전송 데이터:", payload);
+        console.log("서버 전송 데이터:", JSON.stringify(payload, null, 2));
 
         await fetchUserSelectionLog(jwt, payload);
 

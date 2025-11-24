@@ -84,7 +84,8 @@ async fn main() {
         .route("/get/prices", get(prices_get_handler))
         .route("/get/user-preferences", post(user_preference_get_handler))
         .route("/get/user-selection-log",get(user_selection_log_get_handler),)
-        .route("/get/price-change", get(price_change_get_handler));
+        .route("/get/price-change", get(price_change_get_handler))
+        .route("/get/preference-threshold", get("d"));
 
     let update_routes = Router::new()
         .route("/update/user-selection-log",post(user_selection_log_update_handler));

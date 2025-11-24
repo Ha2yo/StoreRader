@@ -12,7 +12,7 @@
 
 use crate::{
     common::token::extract_token::extract_token,
-    domain::user_preference::{dto::dto_res::PreferenceRes, service::get_user_preference},
+    domain::user_preference::{dto::dto_res::{PreferenceRes, ThresholdRes}, service::{get_preference_threshold, get_user_preference}},
 };
 use axum::{
     extract::State,
@@ -63,6 +63,20 @@ pub async fn user_preference_get_handler(
         Err(e) => (
             StatusCode::INTERNAL_SERVER_ERROR,
             Json(json!({ "message": e })).into_response(),
+        ),
+    }
+}
+
+pub async fn get_preference_threshold_handler(
+) -> impl IntoResponse {
+     match get_preference_threshold().await {
+        Ok(threshold) => (
+            StatusCode::OK,
+            Json(ThresholdRes { threshold }).into_response(),
+        ),
+        Err(e) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(serde_json::json!({ "message": e })).into_response(),
         ),
     }
 }

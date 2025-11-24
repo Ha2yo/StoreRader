@@ -13,6 +13,7 @@ import { loadSavedPosition } from "../../../utils/loadSavedPos";
 import { determinePreferenceType } from "../utils/determinePrefType";
 import { logUserSelection } from "../utils/logUserSelection";
 import { touchEffect } from "../../../utils/touchEffect";
+import { fetchPreferenceThreshold } from "../api/fetchPreferenceThreshold";
 
 function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
@@ -175,10 +176,10 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                                         const dlng = store.y_coord;
                                         const dname = encodeURIComponent(store.store_name);
                                         const naverMApUrl = `nmap://route/public?slat=${slat}&slng=${slng}&sname=${sname}&dlat=${dlat}&dlng=${dlng}&dname=${dname}&appname=com.ik9014.storerader`
-                                        await openUrl(naverMApUrl);
-
-                                        const preferenceType = determinePreferenceType(store, candidates);
+                                        const threshold = await fetchPreferenceThreshold();
+                                        const preferenceType = determinePreferenceType(store, candidates, threshold);
                                         await logUserSelection(store, goodId, preferenceType);
+                                        await openUrl(naverMApUrl);
                                     }
                                 }}
                             >
@@ -218,10 +219,10 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                                         const dlng = store.y_coord;
                                         const dname = encodeURIComponent(store.store_name);
                                         const kakaoMapUrl = `https://map.kakao.com/link/from/${sname},${slat},${slng}/to/${dname},${dlat},${dlng}`;
-                                        await openUrl(kakaoMapUrl);
-
-                                        const preferenceType = determinePreferenceType(store, candidates);
+                                        const threshold = await fetchPreferenceThreshold();
+                                        const preferenceType = determinePreferenceType(store, candidates, threshold);
                                         await logUserSelection(store, goodId, preferenceType);
+                                        await openUrl(kakaoMapUrl);
                                     }
                                 }}
                             >
