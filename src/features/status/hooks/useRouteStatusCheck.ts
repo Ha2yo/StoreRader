@@ -18,6 +18,19 @@ export function useRouteStatusCheck() {
     const prevPath = useRef(location.pathname);
     const [networkPopup, setNetworkPopup] = useState(false);
 
+    // 2) 서버 상태 점검
+    async function runServerCheck() {
+        if (!online) {
+            setNetworkPopup(true);
+            return;
+        }
+
+        const status = await checkServerHealth();
+        if (status === "down") {
+            navigate("/maintenance");
+        }
+    }
+
     useEffect(() => {
         if (location.pathname === "/maintenance") return;
 
@@ -25,7 +38,7 @@ export function useRouteStatusCheck() {
         const pageChanged = prevPath.current !== location.pathname;
         prevPath.current = location.pathname;
 
-        // 1) 클라이언트 네트워크 체크
+        // 1) 클라이언트 네트워크 상태 점검
         if (pageChanged) {
             if (!online) {
                 setNetworkPopup(true);
@@ -33,20 +46,8 @@ export function useRouteStatusCheck() {
             }
         }
 
-        // 2) 서버 체크
-        const checkServer = async () => {
-            if (!online) {
-                setNetworkPopup(true);
-                return;
-            }
-            const status = await checkServerHealth();
-            if (status === "down") {
-                navigate("/maintenance");
-            }
-        };
-
-        checkServer();
+        runServerCheck();
 
     }, [location.pathname]);
-    return { networkPopup, setNetworkPopup, online };
+    return { networkPopup, setNetworkPopup, online, runServerCheck, };
 }

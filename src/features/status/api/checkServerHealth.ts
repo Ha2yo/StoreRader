@@ -12,11 +12,22 @@ import { invoke } from "@tauri-apps/api/core";
 export async function checkServerHealth() {
     try {
         const apiURL = await invoke<string>("c_get_env_value", { name: "API_URL" });
-        const res = await fetch(`${apiURL}`, { method: "GET" });
+        
+        const controller = new AbortController();
+        
+        const timeoutId = setTimeout(() => controller.abort(), 2000); 
+
+        const res = await fetch(`${apiURL}/`, {
+            signal: controller.signal,
+        });
+        
+        clearTimeout(timeoutId);
 
         if (res.status === 200) return "ok";
         return "down";
-    } catch {
+        
+    } catch (error) {
+        // 2초가 지나 타임아웃이 발생한 경우
         return "down";
     }
 }

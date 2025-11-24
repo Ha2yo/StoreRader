@@ -8,9 +8,10 @@ import { touchEffect } from "../../../utils/touchEffect";
 type NetworkAlertPopupProps = {
     visible: boolean;
     onRetry: () => void;
+    runServerCheck: () => void;
 };
 
-export function NetworkAlertPopup({ visible, onRetry }: NetworkAlertPopupProps) {
+export function NetworkAlertPopup({ visible, onRetry, runServerCheck }: NetworkAlertPopupProps) {
     if (!visible) return null;
 
     return (
@@ -49,7 +50,10 @@ export function NetworkAlertPopup({ visible, onRetry }: NetworkAlertPopupProps) 
 
                 <button
                     {...touchEffect}
-                    onClick={onRetry}
+                    onClick={() => {
+                        onRetry();
+                        runServerCheck();
+                    }}
                     style={{
                         width: "100%",
                         padding: "12px 0",

@@ -35,7 +35,7 @@ function Routing() {
  * 라우팅 처리 + 네트워크 상태 감지 + 페이지별 네비게이션 표시 제어 담당
  */
 function RoutingContents() {
-    const { networkPopup, setNetworkPopup, online } = useRouteStatusCheck();
+    const { networkPopup, setNetworkPopup, online, runServerCheck } = useRouteStatusCheck();
     return (
         <>
             {/* 네트워크 끊김 감지 팝업 */}
@@ -44,6 +44,7 @@ function RoutingContents() {
                 onRetry={() => {
                     if (online) setNetworkPopup(false);
                 }}
+                runServerCheck={runServerCheck}   
             />
 
             <Navigation />

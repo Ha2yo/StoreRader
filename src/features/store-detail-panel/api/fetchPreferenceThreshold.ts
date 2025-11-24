@@ -1,3 +1,9 @@
+/**
+ * File: features/store-detail-panel/api/fetchPreferenceThreshold.ts
+ * Description:
+ *   사용자 선호도 계산에 사용되는 임계값(threshold)을 서버에서 가져온다.
+ */
+
 import { invoke } from "@tauri-apps/api/core";
 
 export async function fetchPreferenceThreshold() {
