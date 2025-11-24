@@ -1,8 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import StoreDetailPanel from "../../StoreDetailPanel/components/StoreDetailPanel";
-import { usePreference } from "../../../contexts/PreferenceContext";
 import { Store } from "../types/Store.types";
 import { useMapInit } from "../hooks/useMapInit";
 import { useRegionDistanceEvent } from "../hooks/useRegionDistanceEvent";
@@ -10,6 +9,7 @@ import { useStoreData } from "../hooks/useStoreData";
 import { useUserLocation } from "../hooks/useUserLocation";
 import { recenterMap } from "../utils/recenterMap";
 import { useZoomScale } from "../hooks/useZoomScale";
+import { usePreference } from "../../preference/hooks/usepreference";
 
 function Map() {
     const mapRef = useRef<HTMLDivElement>(null);
@@ -20,10 +20,6 @@ function Map() {
 
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
-    const { preference } = usePreference();
-    const w_price = preference.w_price;
-    const w_distance = preference.w_distance;
-
     const selectedGoodId = localStorage.getItem("selectedGoodId");
 
     // 1) 지역/거리 변경 이벤트 → renderKey 증가
@@ -31,6 +27,15 @@ function Map() {
 
     // 2) 지도 초기화
     useMapInit(mapRef, leafletMap);
+
+    const { preference, refreshPreference } = usePreference();
+    useEffect(() => {
+        refreshPreference();
+    }, []);
+
+    const w_price = preference.w_price;
+    const w_distance = preference.w_distance;
+    console.log("선호도:", w_price, w_distance);
 
     // 3) 매장 데이터 처리 (추천, 마커 생성 등)
     const scoredStores = useStoreData({

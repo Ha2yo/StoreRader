@@ -240,6 +240,6 @@ export function useStoreData({
                 console.error("매장 데이터 불러오기 실패:", err);
             }
         })();
-    }, [renderKey]); // 지역 변경 시 재실행
+    }, [renderKey, w_price]); // 지역 변경 시 재실행
     return scoredStores;
 }

@@ -8,14 +8,11 @@ import './app/App.css';
 import ReactDOM from "react-dom/client";
 import LocationProvider from "./contexts/LocationContext";
 import Routing from "./app/Routing";
-import { PreferenceProvider } from "./contexts/PreferenceContext";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <LocationProvider>
-      <PreferenceProvider>
-        <Routing />
-      </PreferenceProvider>
+      <Routing />
     </LocationProvider>
   </React.StrictMode>,
 );

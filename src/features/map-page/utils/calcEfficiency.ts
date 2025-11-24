@@ -1,4 +1,3 @@
-// 추천 점수 계산 (낮을수록 효율적)
 export function calcEfficiency(
     price: number,
     distance: number,
@@ -9,6 +8,7 @@ export function calcEfficiency(
 ): number {
     const priceRatio = price / maxPrice;
     const distanceRatio = distance / maxDistance;
+    console.log("선호도:", w_price, w_distance);
 
     const priceEff = 1 - priceRatio;
     const distanceEff = 1 - distanceRatio;
