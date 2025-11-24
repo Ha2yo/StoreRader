@@ -1,3 +1,10 @@
+/**
+ * File: features/status/hooks/useNetworkStatus.ts
+ * Description:
+ *   브라우저의 online/offline 이벤트를 감지하여
+ *   현재 네트워크 연결 상태(온라인 여부)를 반환한다
+ */
+
 import { useEffect, useState } from "react";
 
 export function useNetworkStatus() {

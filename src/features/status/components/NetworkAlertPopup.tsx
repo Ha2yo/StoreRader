@@ -1,4 +1,10 @@
-import { touchEffect } from "../../StoreDetailPanel/utils/touchEffect";
+/**
+ * File: features/status/components/NetworkAlertPopup.tsx
+ * Description:
+ *   기기가 오프라인일 때 화면 중앙에 표시되는 네트워크 경고 모달
+ */
+
+import { touchEffect } from "../../../utils/touchEffect";
 type NetworkAlertPopupProps = {
     visible: boolean;
     onRetry: () => void;

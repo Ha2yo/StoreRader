@@ -8,4 +8,5 @@ export interface Props {
     w_price: number;
     w_distance: number;
     setSelectedStore: (s: Store | null) => void;
+    isWeight: boolean;
 }

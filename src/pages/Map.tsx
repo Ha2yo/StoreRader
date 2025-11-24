@@ -1,3 +1,10 @@
+/**
+ * File: pages/Map.tsx
+ * Description:
+ *   지도 화면을 렌더링하며,
+ *   지도와 검색바를 함께 표시한다
+ */
+
 import MapPage from "../features/map-page/components/Map";
 import SearchBar from "../features/search-bar/components/SearchBar";
 

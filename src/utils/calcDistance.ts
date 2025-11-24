@@ -1,5 +1,10 @@
-// 사용자와 매장 간 거리 구하기 (하버사인 공식 활용)
-// 위, 경도 입력 -> km 단위 실수 반환
+/**
+ * File: utils/calcDistance.ts
+ * Description:
+ *   두 지점의 위도·경도 좌표를 이용해
+ *   하버사인(Haversine) 공식을 통해 실제 직선 거리(km)를 계산한다
+ */
+
 export function calcDistance(
     slat: number, slng: number, dlat: number, dlng: number) {
     const radius = 6371; // 지구 반경 (km)

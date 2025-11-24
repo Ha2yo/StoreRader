@@ -1,3 +1,8 @@
+/**
+ * File: features/my-info-page/api/fetchUserHistory.ts
+ * Description:
+ *   JWT 인증을 사용해 서버에서 사용자 선택 로그를 가져온다.
+ */
 import { invoke } from "@tauri-apps/api/core";
 import { UserHistoryItem } from "../types/MyInfo.types";
 

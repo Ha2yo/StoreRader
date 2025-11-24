@@ -1,10 +1,16 @@
+/**
+ * File: features/map-page/utils/markerIcon.ts
+ * Description:
+ *   Leaflet 지도에서 사용할 SVG 기반 커스텀 마커 아이콘을 생성
+ */
+
 import L from "leaflet";
 
-// 랜덤 ID 생성 (중복 방지)
+// 고유 ID 생성 (중복 방지)
 const uid = () => Math.random().toString(36).substring(2, 9);
 
 const makeSvgIcon = (colorTop: string, colorBottom: string) => {
-    const gradId = `grad-${uid()}`; // 고유 ID 생성
+    const gradId = `grad-${uid()}`;
 
     return L.divIcon({
         className: "leaflet-div-icon scalable-marker",
@@ -30,11 +36,11 @@ const makeSvgIcon = (colorTop: string, colorBottom: string) => {
     });
 };
 
-// 추천 1위 (빨강)
+// 추천 1위
 export const redIcon = makeSvgIcon("#E57373", "#D64545");
 
-// 추천 2~5위 (주황)
+// 추천 2~5위
 export const orangeIcon = makeSvgIcon("#F6C17A", "#E89F4C");
 
-// 일반 매장 (검정)
+// 일반 매장
 export const blackIcon = makeSvgIcon("#8A8A8A", "#5A5A5A");

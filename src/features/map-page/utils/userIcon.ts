@@ -1,4 +1,9 @@
-// src/.../utils/userIcon.ts
+/**
+ * File: features/map-page/utils/userIcon.ts
+ * Description:
+ *   지도 위에서 사용자 위치를 표시하는 커스텀 마커 아이콘
+ */
+
 import L from "leaflet";
 
 export const userIcon = L.divIcon({

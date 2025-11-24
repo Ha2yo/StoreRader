@@ -1,4 +1,10 @@
-import { touchEffect } from "../../StoreDetailPanel/utils/touchEffect";
+/**
+ * File: features/myinfo-page/components/MyInfo.tsx
+ * Description:
+ *   로그인 여부에 따라 사용자 정보, 기록 조회, 로그인/로그아웃 버튼을 표시한다
+ */
+
+import { touchEffect } from "../../../utils/touchEffect";
 import { useMyInfo } from "../hooks/useMyInfo";
 import UserHistoryList from "./UserHistory";
 
@@ -8,7 +14,7 @@ export default function MyInfo() {
   return (
     <div className="container" style={{ paddingTop: "100px" }}>
 
-
+      {/* 로그인 이전 화면 */}
       {!user ? (
         <div>
           <div className="profile" />
@@ -32,6 +38,8 @@ export default function MyInfo() {
           </button>
         </div>
       ) : (
+
+        // 로그인 이후 화면
         <div>
           <img
             src={user.picture}
@@ -45,6 +53,7 @@ export default function MyInfo() {
             {user.email}
           </p>
 
+          {/* 사용자 매장 선택 로그 조회 */}
           <button
             {...touchEffect}
             style={{
@@ -60,6 +69,7 @@ export default function MyInfo() {
             기록 보기
           </button>
 
+          {/* 로그아웃 */}
           <button
             {...touchEffect}
             style={{
@@ -78,6 +88,7 @@ export default function MyInfo() {
         </div>
       )}
 
+      {/* 기록이 있을 때만 리스트 표시 */}
       {history.length > 0 && <UserHistoryList history={history} />}
     </div>
   );

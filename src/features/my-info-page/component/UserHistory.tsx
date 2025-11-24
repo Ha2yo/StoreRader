@@ -1,4 +1,11 @@
-import { touchEffect } from "../../StoreDetailPanel/utils/touchEffect";
+/**
+ * File: features/myinfo-page/components/UserHistoryList.tsx
+ * Description:
+ *   사용자가 선택했던 매장/상품 기록을 카드 형태로 보여주고,
+ *   클릭 시 해당 매장을 지도 페이지에서 바로 표시한다
+ */
+
+import { touchEffect } from "../../../utils/touchEffect";
 import { UserHistoryItem } from "../types/MyInfo.types";
 import { useNavigate } from "react-router-dom";
 
@@ -42,37 +49,42 @@ export default function UserHistoryList({ history }: Props) {
             navigate("/map");
           }}
         >
+
+          {/* 기록 생성 날짜 표시 */}
           <div style={{
             fontSize: "12px",
             color: "#999",
             marginBottom: "8px",
           }}>
             {(() => {
-              const date = new Date(item.created_at + "Z"); // ← UTC로 인식시키기
+              const date = new Date(item.created_at + "Z"); // UTC -> 한국시간 변환
               return date.toLocaleString("ko-KR", {
                 timeZone: "Asia/Seoul",
               });
             })()}
           </div>
 
+          {/* 상품명 */}
           <div style={{
-              fontSize: "17px",
-              fontWeight: 600,
-              color: "#111",
-              marginBottom: "6px",
-            }}>
+            fontSize: "17px",
+            fontWeight: 600,
+            color: "#111",
+            marginBottom: "6px",
+          }}>
             {item.good_name}
           </div>
 
+          {/* 매장명 */}
           <div style={{
-              fontSize: "17px",
-              fontWeight: 600,
-              color: "#111",
-              marginBottom: "6px",
-            }}>
+            fontSize: "17px",
+            fontWeight: 600,
+            color: "#111",
+            marginBottom: "6px",
+          }}>
             {item.store_name}
           </div>
 
+          {/* 가격 정보 */}
           <div style={{ fontSize: "15px" }}>
             <div>
               <span style={{ color: "#666" }}>당시 가격: </span>

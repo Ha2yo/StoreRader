@@ -1,9 +1,15 @@
+/**
+ * File: features/home-page/components/PriceChange.tsx
+ * Description:
+ *   가격 변동 TOP 50 리스트를 보여준다
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePriceChange } from "../hooks/usePriceChange";
 import { formatDate } from "../utils/formatDate";
 import Slider from "@mui/material/Slider";
-import { touchEffect } from "../../StoreDetailPanel/utils/touchEffect";
+import { touchEffect } from "../../../utils/touchEffect";
 
 const marks = [
     { value: 0, label: '0개' },
@@ -16,12 +22,13 @@ export default function PriceChange() {
     const { downList, upList, minCount, setMinCount } = usePriceChange();
     const [tab, setTab] = useState<"down" | "up">("down");
 
+    // 현재 선택된 탭에 따라 노출할 리스트 결정
     const list = tab === "down" ? downList : upList;
 
     return (
         <div style={{ padding: "0px 20px 100px" }}>
 
-            {/* 탭 */}
+            {/* 하락 / 상승 탭 */}
             <div style={{
                 display: "flex",
                 justifyContent: "center",
@@ -46,7 +53,7 @@ export default function PriceChange() {
                 ))}
             </div>
 
-            {/* 슬라이더 */}
+            {/* 변동 감지 매장 수 필터 */}
             <div style={{ margin: "10px 10px" }}>
                 <label style={{ fontSize: 14, fontWeight: 600 }}>
                     매장 수 필터 : {minCount}개 이상
@@ -71,7 +78,7 @@ export default function PriceChange() {
                 />
             </div>
 
-            {/* 설명 카드 */}
+            {/* 리스트 설명 */}
             <div style={{
                 background: "#F7F9FC",
                 padding: "12px 14px",
@@ -97,7 +104,7 @@ export default function PriceChange() {
                 </b>
             </div>
 
-            {/* 리스트 */}
+             {/* TOP 50 변동 상품 리스트 */}
             <ul style={{ listStyle: "none", paddingBottom: 100, margin: 0 }}>
                 {list.map((item, idx) => (
                     <li

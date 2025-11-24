@@ -1,3 +1,11 @@
+/**
+ * File: features/status/hooks/useRouteStatusCheck.ts
+ * Description:
+ *   라우트 변경 시 네트워크 상태와 서버 상태를 점검하여
+ *   - 오프라인이면 네트워크 안내 팝업을 표시하고
+ *   - 서버가 다운되면 유지보수 페이지로 이동시킨다
+ */
+
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { checkServerHealth } from "../api/checkServerHealth";
@@ -13,11 +21,12 @@ export function useRouteStatusCheck() {
     useEffect(() => {
         if (location.pathname === "/maintenance") return;
 
-        // 1) 클라이언트 네트워크 체크
+        // 페이지 이동 감지
         const pageChanged = prevPath.current !== location.pathname;
         prevPath.current = location.pathname;
+
+        // 1) 클라이언트 네트워크 체크
         if (pageChanged) {
-            // 네트워크 꺼져 있으면 팝업 표시
             if (!online) {
                 setNetworkPopup(true);
                 return;

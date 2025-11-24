@@ -1,3 +1,10 @@
+/**
+ * File: features/store-detail-panel/components/StoreDetailPanel.tsx
+ * Description:
+ *   매장 상세 정보(주소, 전화번호, 거리)를 보여주고
+ *   네이버/카카오 길찾기 실행 및 사용자 선택 로그를 기록하는 패널
+ */
+
 import { useState } from "react";
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { Props } from "../types/StoreDetail.types";
@@ -5,14 +12,13 @@ import { calcDistance } from "../../../utils/calcDistance";
 import { loadSavedPosition } from "../../../utils/loadSavedPos";
 import { determinePreferenceType } from "../utils/determinePrefType";
 import { logUserSelection } from "../utils/logUserSelection";
-import { touchEffect } from "../utils/touchEffect";
+import { touchEffect } from "../../../utils/touchEffect";
 
 function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
     const [isRouteModalOpen, setIsRouteModalOpen] = useState(false);
 
-    // 사용자 위치 얻기
+    // 사용자 위치 및 매장까지의 거리 계산
     const pos = loadSavedPosition();
-    // 매장과의 거리 얻기
     const distanceKm = calcDistance(pos.lat, pos.lng, store.x_coord!, store.y_coord!).toFixed(2)
 
     return (
@@ -55,8 +61,8 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                     }}>{distanceKm} km</p>
                 )}
 
+                {/* 길찾기 & 닫기 */}
                 <div style={{ display: "flex", gap: "12px", marginTop: "10px" }}>
-                    {/* 길찾기 버튼 */}
                     <button
                         {...touchEffect}
                         style={{
@@ -74,7 +80,7 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                     >
                         길찾기
                     </button>
-                    {/* 닫기 버튼 */}
+
                     <button
                         {...touchEffect}
                         style={{
@@ -135,7 +141,7 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
                             }}>
                             길찾기 앱 선택</h3>
 
-                        {/* 버튼들 담는 컨테이너 */}
+                        {/* 네이버 지도 / 카카오맵 */}
                         <div
                             style={{
                                 display: "flex",
@@ -231,7 +237,7 @@ function StoreDetailPanel({ store, candidates, goodId, onClose }: Props) {
 
 
                         </div>
-                        {/* 취소 버튼 */}
+                        {/* 닫기 */}
                         <button
                             {...touchEffect}
                             style={{

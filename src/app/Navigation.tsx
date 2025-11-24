@@ -1,12 +1,13 @@
-/***********************************************************
- Navigation.tsx는 StoreRader 앱의 하단 내비게이션 바를 정의한다
- 각 주요 페이지로 이동할 수 있는 공통 UI 컴포넌트 역할을 수행한다
-
- 1. Navbar: 하단 고정 바
-
- 2. Nav.Link: Home / Mypage로의 이동 버튼
-              (해당 영역 클릭 시 각 페이지로 이동)
-***********************************************************/
+/**
+ * File: app/Navigation.tsx
+ * Description:
+ *   StoreRader 앱의 하단 내비게이션 바를 구성하는 공통 UI 컴포넌트.
+ *
+ * Responsibilities:
+ *   1. 하단 고정 네비게이션 UI 렌더링
+ *   2. 현재 URL 경로(pathname)에 따른 아이콘 활성화 처리
+ *   3. 특정 페이지에서는 네비게이션 바를 숨김
+ */
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { Nav } from 'react-bootstrap';
@@ -19,13 +20,19 @@ function Navigation() {
   const activeColor = "#007AFF";
   const inactiveColor = "#000";
 
+
+  // 현재 페이지가 활성 상태일 때 아이콘을 확대하고 색상을 변경한다.
   const iconStyle = (isActive: boolean) => ({
     transition: "transform 0.3s ease, stroke 0.3s ease",
     transform: isActive ? "scale(1.25)" : "scale(1)",
     transformOrigin: "center center",
   });
 
-  const hideNav = location.pathname === "/search";
+  // 특정 페이지에서 네비게이션 바를 숨긴다
+  const hideNav =
+    location.pathname === "/" ||
+    location.pathname === "/search" ||
+    location.pathname === "/maintenance";
   if (hideNav) return null;
 
   return (
@@ -46,6 +53,7 @@ function Navigation() {
         zIndex: 1000,
       }}
     >
+      {/* Home 버튼 */}
       <Nav.Link as={Link} to="/home"><svg
         width="26"
         height="26"
@@ -60,6 +68,8 @@ function Navigation() {
         <path d="M3 10L12 3l9 7" />
         <path d="M9 21V12h6v9" />
       </svg></Nav.Link>
+
+      {/* Map 버튼 */}
       <Nav.Link as={Link} to="/map"> <svg
         width="26"
         height="26"
@@ -76,6 +86,8 @@ function Navigation() {
         <path d="M8 3v14" />
         <path d="M15 6v14" />
       </svg></Nav.Link>
+
+      {/* MyInfo 버튼 */}
       <Nav.Link as={Link} to="/myInfo"><svg
         width="26"
         height="26"

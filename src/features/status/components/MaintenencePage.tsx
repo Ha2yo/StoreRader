@@ -1,5 +1,11 @@
+/**
+ * File: features/status/components/MaintenancePage.tsx
+ * Description:
+ *   서버가 응답하지 않을 때 표시되는 점검 안내 화면
+ */
+
 import appIcon from "../../../assets/newIcon.png";
-import { touchEffect } from "../../StoreDetailPanel/utils/touchEffect";
+import { touchEffect } from "../../../utils/touchEffect";
 import { useServerCheck } from "../hooks/useServerCheck";
 
 export default function MaintenancePage() {

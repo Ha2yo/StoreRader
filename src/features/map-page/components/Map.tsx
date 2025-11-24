@@ -1,7 +1,14 @@
+/**
+ * File: features/map-page/components/Map.tsx
+ * Description:
+ *   Leaflet 지도를 기반으로 사용자 위치, 매장 정보, 추천 매장 등을
+ *   시각적으로 표시하는 메인 지도 화면
+ */
+
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import StoreDetailPanel from "../../StoreDetailPanel/components/StoreDetailPanel";
+import StoreDetailPanel from "../../store-detail-panel/components/StoreDetailPanel";
 import { Store } from "../types/Store.types";
 import { useMapInit } from "../hooks/useMapInit";
 import { useRegionDistanceEvent } from "../hooks/useRegionDistanceEvent";
@@ -14,30 +21,35 @@ import { usePreference } from "../../preference/hooks/usepreference";
 function Map() {
     const mapRef = useRef<HTMLDivElement>(null);
     const leafletMap = useRef<L.Map | null>(null);
-    const markerRef = useRef<L.Layer | null>(null);
-    const circleRef = useRef<L.Circle | null>(null);
-    const markersRef = useRef<Record<string, L.Marker>>({});
+    const markerRef = useRef<L.Layer | null>(null);             // 사용자 위치 아이콘
+    const circleRef = useRef<L.Circle | null>(null);            // 사용자 주변 탐색 반경
+    const markersRef = useRef<Record<string, L.Marker>>({});    // 매장 마커 목록
 
     const [selectedStore, setSelectedStore] = useState<Store | null>(null);
 
     const selectedGoodId = localStorage.getItem("selectedGoodId");
 
-    // 1) 지역/거리 변경 이벤트 → renderKey 증가
+    // 지역/거리 변경 발생 시 강제 렌더링 트리거
     const renderKey = useRegionDistanceEvent();
 
-    // 2) 지도 초기화
+    // 지도 초기화
     useMapInit(mapRef, leafletMap);
 
+    // 사용자 선호도 로딩
     const { preference, refreshPreference } = usePreference();
+    const [isWeight, setReady] = useState(false);
     useEffect(() => {
-        refreshPreference();
+        (async () => {
+            await refreshPreference();
+            setReady(true);
+        })();
     }, []);
 
     const w_price = preference.w_price;
     const w_distance = preference.w_distance;
     console.log("선호도:", w_price, w_distance);
 
-    // 3) 매장 데이터 처리 (추천, 마커 생성 등)
+    // 매장 데이터 처리 + 점수 계산 + 마커 생성
     const scoredStores = useStoreData({
         map: leafletMap.current,
         markersRef,
@@ -46,20 +58,21 @@ function Map() {
         w_price,
         w_distance,
         setSelectedStore,
+        isWeight,
     });
 
+    // 줌 레벨에 따른 마커 크기 조절
     useZoomScale(leafletMap.current);
 
-    // 4) 사용자 위치 마커 갱신
+    // 사용자 현재 위치 아이콘 갱신
     useUserLocation(leafletMap, markerRef);
 
-    // 렌더링
     return (
         <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
             {/* 지도 표시 영역 */}
             <div ref={mapRef} id="map" style={{ width: "100%", height: "100%" }} />
 
-            {/* 내 위치 이동 버튼 */}
+            {/* 현재 위치로 이동 버튼 */}
             <button
                 onClick={recenterMap(leafletMap)}
                 style={{
@@ -92,13 +105,9 @@ function Map() {
                     style={{ transform: "scale(2.8)" }}
                 >
                     <path d="M12 3v2M12 19v2M5 12H3M21 12h-2" />
-                    {/* 바깥 원 */}
                     <circle cx="12" cy="12" r="8" />
-
-                    {/* 중앙 점 */}
                     <circle cx="12" cy="12" r="3" fill="#007AFF" />
 
-                    {/* 십자 가이드*/}
                     <line x1="12" y1="2" x2="12" y2="5" />
                     <line x1="12" y1="19" x2="12" y2="22" />
                     <line x1="2" y1="12" x2="5" y2="12" />

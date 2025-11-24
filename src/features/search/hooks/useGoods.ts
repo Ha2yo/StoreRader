@@ -1,3 +1,9 @@
+/**
+ * File: features/search/hooks/useGoods.ts
+ * Description:
+ *   전체 상품 목록을 서버에서 불러와 관리한다
+ */
+
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Good } from "../types/goods.types";
@@ -5,7 +11,6 @@ import { Good } from "../types/goods.types";
 export function useGoods() {
     const [goods, setGoods] = useState<Good[]>([]);
 
-    // 상품 목록 서버에서 불러오기
     useEffect(() => {
         const fetchGoods = async () => {
             try {

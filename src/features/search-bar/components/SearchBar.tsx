@@ -1,3 +1,9 @@
+/**
+ * File: features/search-bar/components/Search.tsx
+ * Description:
+ *   홈 화면 상단 검색바 + 사이드바 버튼 UI
+ */
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../side-bar/components/SideBar";
@@ -7,18 +13,21 @@ function Search() {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // 히스토리에서 들어온 경우 검색바를 숨긴다
   const historyFlag = localStorage.getItem("historyFlag");
+
+  // 마지막 검색어 자동 표시
   const lastSearch = useLastSearch();
 
   return (
     <>
       {historyFlag !== "1" && (
         <>
-          {/* 상단 검색바 */}
           <div
             className="search-bar-map"
             onClick={() => navigate("/search")}
           >
+            {/* 햄버거 버튼 */}
             <button
               style={{
                 all: "unset",
@@ -37,7 +46,7 @@ function Search() {
             >
               &nbsp;&nbsp;&nbsp;&nbsp;☰
             </button>
-            {/* 검색창 */}
+
             <input
               className="search-bar-box"
               type="text"
@@ -50,7 +59,6 @@ function Search() {
         </>
       )}
 
-      {/* 사이드바 */}
       {isSidebarOpen && (
         <Sidebar onClose={() => setIsSidebarOpen(false)} />
       )}

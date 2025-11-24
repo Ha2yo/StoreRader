@@ -1,3 +1,10 @@
+/**
+ * File: features/my-info-page/api/googleLogin.ts
+ * Description:
+ *   1) Google OAuth 로그인을 수행하고
+ *   2) 받은 idToken을 백엔드에 전달하여 자체 토큰을 발급받는다.
+ */
+
 import { invoke } from "@tauri-apps/api/core";
 import { signIn } from "@choochmeque/tauri-plugin-google-auth-api";
 

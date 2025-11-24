@@ -1,4 +1,3 @@
-// 매장 정보 인터페이스 
 export interface Store {
     id: number;
     store_id: string;

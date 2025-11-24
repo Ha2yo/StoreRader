@@ -1,6 +1,9 @@
-/***********************************************************
- App.tsx는 StoreRader의 메인 화면(초기 화면)을 정의한다
-***********************************************************/
+/**
+ * File: app/App.tsx
+ * Description:
+ *   StoreRader의 초기 진입 화면
+ *   네트워크 및 서버 상태를 확인한 뒤 홈 화면으로 라우팅한다
+ */
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,10 +16,10 @@ function App() {
 
     useEffect(() => {
         const tryNavigate = async () => {
-            // 네트워크 OFF -> 홈 이동 금지
+            // 오프라인 상태에서는 초기 이동 중단
             if (!online) return;
 
-            // 서버 상태 체크
+            // 서버 상태가 정상일 때만 홈 화면으로 이동
             const status = await checkServerHealth();
             if (status === "ok") {
                 localStorage.removeItem("lastSearchTerm");
@@ -25,7 +28,7 @@ function App() {
             }
         };
 
-        tryNavigate();  
+        tryNavigate();
     }, [online]);
 
     return (

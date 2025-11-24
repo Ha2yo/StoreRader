@@ -1,3 +1,9 @@
+/**
+ * File: features/store-detail-panel/api/fetchUserSelectionLog.ts
+ * Description:
+ *   사용자가 매장을 선택할 때 발생하는 로그를 서버로 전송한다
+ */
+
 import { invoke } from "@tauri-apps/api/core";
 import { SelectionPayload } from "../types/SelectionPayload.types";
 

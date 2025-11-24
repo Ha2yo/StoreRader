@@ -1,11 +1,18 @@
+/**
+ * File: features/map-page/hooks/useUserLocation.ts
+ * Description:
+ *   localStorage에 저장된 사용자 위치를 기반으로
+ *   지도 위의 내 위치 아이콘을 주기적으로 갱신한다.
+ */
+
 import { useEffect } from "react";
 import L from "leaflet";
 import { loadSavedPosition } from "../../../utils/loadSavedPos";
 import { userIcon } from "../utils/userIcon";
 
 export function useUserLocation(
-    leafletMap: React.MutableRefObject<L.Map | null>,
-    markerRef: React.MutableRefObject<L.Layer | null>
+    leafletMap: React.RefObject<L.Map | null>,
+    markerRef: React.RefObject<L.Layer | null>
 ) {
     useEffect(() => {
         const map = leafletMap.current!;
@@ -15,7 +22,7 @@ export function useUserLocation(
             const pos = loadSavedPosition();
             if (!pos) return;
 
-            // 기존 마커 제거
+            // 중복이 생기지 않게 기존 마커 제거
             if (markerRef.current) map.removeLayer(markerRef.current);
 
             markerRef.current = L.marker([pos.lat, pos.lng], {
@@ -24,7 +31,6 @@ export function useUserLocation(
             }).addTo(map);
         };
 
-        // 즉시 1회 실행 + 반복
         refreshMarker();
         const id = setInterval(refreshMarker, 5000);
 

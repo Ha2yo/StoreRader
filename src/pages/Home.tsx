@@ -1,7 +1,9 @@
-/***********************************************************
- Home.tsx는 StoreRader의 홈 화면을 정의한다
- 사용자에게 메인 콘텐츠를 표시한다
-***********************************************************/
+/**
+ * File: pages/Home.tsx
+ * Description:
+ *   StoreRader의 홈 화면을 렌더링하며,
+ *   가격 변동 리스트를 출력한다
+ */
 
 import { useEffect } from "react";
 import PriceChange from "../features/home-page/components/PriceChange";

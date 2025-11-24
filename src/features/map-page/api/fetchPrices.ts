@@ -1,3 +1,9 @@
+/**
+ * File: features/map-page/api/fetchPrices.ts
+ * Description:
+ *   특정 상품명에 대한 매장별 가격 정보를 서버에서 조회한다
+ */
+
 import { invoke } from "@tauri-apps/api/core";
 import { StorePrice } from "../types/StorePrice.types";
 

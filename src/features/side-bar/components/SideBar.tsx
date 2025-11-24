@@ -1,13 +1,17 @@
+/**
+ * File: features/side-bar/components/SideBar.tsx
+ * Description:
+ *   지역 / 거리 필터를 선택하고 그 결과를 map-page로 전달하는 사이드바 UI
+ */
+
 import { useEffect, useState } from "react";
 import { useRegions } from "../hooks/useRegions.ts";
 import { applyDistanceSelection, applyRegionSelection } from "../utils/selectionHandler.ts";
 
-// onclose: 사이드바 닫는 함수
 interface SidebarProps {
-  onClose: () => void;
+  onClose: () => void; // 사이드바 닫기
 }
 
-// 거리 필터 (단위: km)
 const distances = [
   { name: "1km", code: "1.00" },
   { name: "3km", code: "3.00" },
@@ -19,10 +23,11 @@ const distances = [
 function Sidebar({ onClose }: SidebarProps) {
   const [closing, setClosing] = useState(false);
 
+  // 탭 열림 상태
   const [showRegionList, setShowRegionList] = useState(false);
   const [showDistanceList, setShowDistanceList] = useState(false);
 
-  // 지역 & 거리 선택 상태
+  // 현재 선택된 지역 / 거리
   const [selectedRegion, setSelectedRegion] = useState<string>(
     localStorage.getItem("selectedRegionCode") || "020000000"
   );
@@ -36,7 +41,8 @@ function Sidebar({ onClose }: SidebarProps) {
       onClose();
     }, 250);
   };
-  // 초기 기본값 설정
+
+  // 지역 기본값 보장
   useEffect(() => {
     if (!localStorage.getItem("selectedRegionCode")) {
       localStorage.setItem("selectedRegionCode", "020000000");
@@ -45,6 +51,7 @@ function Sidebar({ onClose }: SidebarProps) {
 
   const regions = useRegions();
 
+  // 지역 선택 처리
   const handleRegionSelect = (regionCode: string) => {
     setSelectedRegion(regionCode);
     setSelectedDistance(null);
@@ -53,6 +60,7 @@ function Sidebar({ onClose }: SidebarProps) {
     onClose();
   };
 
+  // 거리 선택 처리
   const handleDistanceSelect = (distanceCode: string) => {
     setSelectedDistance(distanceCode);
     setSelectedRegion("020000000");
@@ -61,7 +69,6 @@ function Sidebar({ onClose }: SidebarProps) {
     onClose();
   };
 
-  // 렌더링
   return (
     <>
       {/* 오버레이 */}
@@ -76,7 +83,7 @@ function Sidebar({ onClose }: SidebarProps) {
         }}
       />
 
-      {/* 사이드바 본체 */}
+      {/* 사이드바 */}
       <div
         className={closing ? "sidebar sidebar-close" : "sidebar sidebar-open"}
         style={{

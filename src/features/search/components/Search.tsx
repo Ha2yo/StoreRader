@@ -1,3 +1,9 @@
+/**
+ * File: features/search/components/Search.tsx
+ * Description:
+ *   상품명 자동완성 검색 화면
+ */
+
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useGoods } from "../hooks/useGoods";
@@ -11,7 +17,7 @@ function Search() {
 
   const navigate = useNavigate();
 
-  // 모바일에서 입력창 자동 활성화
+  // 키보드 자동 활성화
   useEffect(() => {
     const timer = setTimeout(() => {
       inputRef.current?.focus();
@@ -20,7 +26,7 @@ function Search() {
 
   }, []);
 
-  // 검색어 필터링
+  // 입력값 기반 필터링
   const filteredGoods = goods.filter((g) =>
     g.good_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -50,6 +56,7 @@ function Search() {
           zIndex: 999,
         }}
       />
+      
       <input
         className="search-bar-search"
         ref={inputRef}
