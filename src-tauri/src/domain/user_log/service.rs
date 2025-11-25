@@ -76,7 +76,7 @@ pub async fn update_user_selection_log(
         let mut w_price = old_preference.w_price * (1.0 - alpha) + new_w_price_raw * alpha;
 
         w_price = (w_price * 1000.0).round() / 1000.0;
-        let w_distance = 1.0 - w_price;
+        let w_distance = ((1.0 - w_price) * 1000.0).round() / 1000.0;
 
         update_user_weights(pool, user_id, w_price, w_distance)
             .await
