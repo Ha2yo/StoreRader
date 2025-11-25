@@ -5,16 +5,10 @@
  *   가격 변동 리스트를 출력한다
  */
 
-import { useEffect } from "react";
 import PriceChange from "../features/home-page/components/PriceChange";
 
 function Home() {
   console.log('홈 화면 로딩');
-  useEffect(() => {
-    localStorage.removeItem("lastSearchTerm");
-    localStorage.removeItem("selectedGoodName");
-  }, []);
-  
   return (
     <div className='container'>
       <PriceChange />

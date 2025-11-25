@@ -14,6 +14,9 @@ function App() {
     const navigate = useNavigate();
     const online = useNetworkStatus();
 
+    localStorage.removeItem("lastSearchTerm");
+    localStorage.removeItem("selectedGoodName");
+
     useEffect(() => {
         const tryNavigate = async () => {
             // 오프라인 상태에서는 초기 이동 중단
