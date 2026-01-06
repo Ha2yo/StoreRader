@@ -1,5 +1,3 @@
-<img width="736" height="1045" alt="image" src="https://github.com/user-attachments/assets/7fe3d15c-71d0-4416-916e-bffec9929322" /><img width="738" height="1046" alt="image" src="https://github.com/user-attachments/assets/4bd4f7ac-f7c8-40be-8788-6d53bb79fab9" /># StoreRader
-
 [졸업논문_2020E8630_조장현.pdf](https://github.com/user-attachments/files/24445971/_2020E8630_.pdf)
 
 
